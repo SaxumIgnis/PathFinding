@@ -1,5 +1,8 @@
 package pathFinding;
 
+import geometry.Point;
+import geometry.Vector;
+
 class Step {
 	
 	private final double speed;

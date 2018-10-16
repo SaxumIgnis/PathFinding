@@ -2,6 +2,9 @@ package pathFinding;
 
 import java.util.ArrayList;
 
+import geometry.Point;
+import geometry.Polygon;
+
 class Path {
 	
 	private ArrayList<Step> steps;

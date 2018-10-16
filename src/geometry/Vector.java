@@ -1,12 +1,12 @@
-package pathFinding;
+package geometry;
 
-class Vector extends Point {
+public class Vector extends Point {
 
 	public Vector(double x, double y, double z) {
 		super(x, y, z);
 	}
 	
-	double length() {
+	public double length() {
 		return(Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2) + Math.pow(this.z, 2)));
 	}
 	

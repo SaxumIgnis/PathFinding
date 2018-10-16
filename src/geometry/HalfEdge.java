@@ -1,4 +1,4 @@
-package pathFinding;
+package geometry;
 
 public class HalfEdge {
 
@@ -6,42 +6,54 @@ public class HalfEdge {
 	private HalfEdge opposite;
 	private HalfEdge next;
 	private Polygon polygon;
-	double crossTime;
+	private double crossTime;
 	
-	HalfEdge(Point p, double f) {
+	public HalfEdge(Point p) {
 		this.origin = p;
 		this.set_opposite(null);
 		this.set_next(null);
 		this.polygon = null;
-		this.crossTime = f;
+		this.crossTime = 0;
 	}
 
-	HalfEdge get_next() {
+	public HalfEdge get_next() {
 		return next;
 	}
 
-	HalfEdge get_opposite() {
+	public HalfEdge get_opposite() {
 		return opposite;
 	}
 	void set_origin(Vertex v) {
 		this.origin = v;
 	}
 	
-	void set_polygon(Polygon p) {
+	public void set_polygon(Polygon p) {
 		this.polygon = p;
 	}
 	
-	void set_opposite(HalfEdge o) {
+	public void set_opposite(HalfEdge o) {
 		this.opposite = o;
 		o.opposite = this;
 	}
 	
-	void set_next(HalfEdge n) {
+	public void set_next(HalfEdge n) {
 		this.next = n;
 		this.polygon = n.polygon;
 	}
 	
-	Point intersection(Point a, Point b) {
+	void set_cross(double time) {
+		this.crossTime = time;
+	}
+	
+	double get_cross() {
+		return this.crossTime;
+	}
+	
+	Point get_origin() {
+		return this.origin;
+	}
+	
+	public Point intersection(Point a, Point b) {
 		// TODO
 		return null;
 	}

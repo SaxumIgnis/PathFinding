@@ -1,5 +1,7 @@
 package pathFinding;
 
+import geometry.Point;
+
 final class ProcessedMap extends StructuredMap implements PathFinder {
 
 	@Override
