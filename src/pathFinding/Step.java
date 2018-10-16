@@ -2,12 +2,12 @@ package pathFinding;
 
 class Step {
 	
-	private final double speedCoeff;
+	private final double speed;
 	private final Point origin;
 	private final Point end;
 	
-	Step(double s, Point a, Point b) {
-		this.speedCoeff = s;
+	Step(double speed, Point a, Point b) {
+		this.speed = speed;
 		this.origin = a;
 		this.end = b;
 	}
@@ -17,10 +17,14 @@ class Step {
 	}
 	
 	double speed() {
-		return this.speedCoeff;
+		return this.speed;
+	}
+	
+	Point get_origin() {
+		return this.origin;
 	}
 	
 	double length() {
-		return this.vector().length() / this.speedCoeff;
+		return this.vector().length() / this.speed;
 	}
 }
