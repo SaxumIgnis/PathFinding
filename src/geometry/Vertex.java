@@ -11,7 +11,7 @@ public class Vertex extends Point {
 		this.edges = new ArrayList<HalfEdge>(2);
 	}
 	
-	public void add_edge(HalfEdge e) {
+	public void addEdge(HalfEdge e) {
 		this.edges.add(e);
 	}
 	
@@ -20,16 +20,16 @@ public class Vertex extends Point {
 		return 0;
 	}
 	
-	public boolean is_neighbour(Vertex v) {
+	public boolean isNeighbour(Vertex v) {
 		for (HalfEdge e : this.edges) {
-			if (v.equals(e.get_opposite().get_origin())) return true;
+			if (v.equals(e.getOpposite().getOrigin())) return true;
 		}
 		return false;
 	}
 	
-	public HalfEdge edge_to_neighbour(Vertex v) {
+	public HalfEdge edgeToNeighbour(Vertex v) {
 		for (HalfEdge e : this.edges) {
-			if (v.equals(e.get_opposite().get_origin())) return e;
+			if (v.equals(e.getOpposite().getOrigin())) return e;
 		}
 		return null;		
 	}

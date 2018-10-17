@@ -12,7 +12,19 @@ public class Point extends Object implements Comparable<Object> {
 		this.z = z;
 	}
 	
-	double distance(Point p) {
+	public double getX() {
+		return this.x;
+	}
+	
+	public double getY() {
+		return this.y;
+	}
+
+	public double getZ() {
+		return this.z;
+	}
+	
+	public double distance(Point p) {
 		return(this.minus(p).length());
 	}
 	
@@ -48,6 +60,12 @@ public class Point extends Object implements Comparable<Object> {
 		if (this.x < p.x) return -1;
 		if (this.x > p.x) return 1;
 		return 0;
+	}
+	
+	public LocatedPoint locate(Polygon polygon) {
+		LocatedPoint p = (LocatedPoint) this;
+		p.polygon = polygon;
+		return p;
 	}
 	
 }

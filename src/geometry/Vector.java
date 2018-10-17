@@ -22,11 +22,11 @@ public class Vector extends Point {
 				);
 	}
 
-	double scalar_prod(Vector v) {
+	double scalarProd(Vector v) {
 		return(this.x * v.x + this.y * v.y + this.z * v.z);
 	}
 	
-	Vector vector_product(Vector v) {
+	Vector vectorProduct(Vector v) {
 		return new Vector(
 				this.y * v.z - this.z * v.y,
 				this.z * v.x - this.x * v.z,
@@ -34,12 +34,20 @@ public class Vector extends Point {
 				);
 	}
 	
-	double angle2D() {
-		return Math.atan2(this.x,  this.y);
+	public double angle2D() {
+		// retourne l'angle (en rad) par rapport à la verticale dans le sens direct entre -pi et pi
+		return -Math.atan2(this.x, this.y);
 	}
 	
+	public double angle2D(Vector v) {
+		// AB.angle2D(AC) retourne l'angle BAC en rad entre -pi et pi
+		double res = v.angle2D() - this.angle2D();
+		while (res > Math.PI) res -= Math.PI * 2;
+		while (res <= -Math.PI) res += Math.PI * 2;
+		return res;
+	}
 
-	Vector to_plan() {
+	Vector toPlan() {
 		return new Vector(this.x, this.y, (double) 0);
 	}
 }
