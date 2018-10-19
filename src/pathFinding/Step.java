@@ -61,33 +61,39 @@ class Step {
 	StepEnd nextStep(Point aim, HalfEdge intersectedEdge) throws BlockedPathException {
 		HalfEdge toTestEdge = intersectedEdge.getOpposite().getNext();
 		Point intersection = null;
-		while (!toTestEdge.equals(intersectedEdge.getOpposite())) {
-			intersection = toTestEdge.intersection(this.end, aim);
-			
-			if (intersection != null) return new StepEnd(
-					// l'objectif se trouve en dehors du polygone
+		try {
+			while (!toTestEdge.equals(intersectedEdge.getOpposite())) {
+				intersection = toTestEdge.intersection(this.end, aim);
+
+				if (intersection != null) return new StepEnd(
+						// l'objectif se trouve en dehors du polygone
+						new Step(
+								toTestEdge.getPolygon().coeffSpeed(aim.minus(this.end)), 
+								intersectedEdge.getCross(), 
+								this.end, 
+								intersection
+								),
+						toTestEdge
+						);
+
+				toTestEdge = toTestEdge.getNext();
+			}
+
+			// l'objectif est à l'intérieur du polygone
+			return new StepEnd(
 					new Step(
 							toTestEdge.getPolygon().coeffSpeed(aim.minus(this.end)), 
 							intersectedEdge.getCross(), 
 							this.end, 
-							intersection
+							aim
 							),
-					toTestEdge
+					null
 					);
-			
-			toTestEdge = toTestEdge.getNext();
+		} catch (java.lang.NullPointerException e) {
+			// normalement c'est inutile car on ne doit pas pouvoir sortir de la map physique mais on ne sait jamais
+			throw new BlockedPathException();
 		}
 		
-		// l'objectif est à l'intérieur du polygone
-		return new StepEnd(
-				new Step(
-						toTestEdge.getPolygon().coeffSpeed(aim.minus(this.end)), 
-						intersectedEdge.getCross(), 
-						this.end, 
-						aim
-						),
-				null
-				);
 	}
 	
 	static StepEnd firstStep(Point origin, Point aim, Polygon area) throws BlockedPathException {

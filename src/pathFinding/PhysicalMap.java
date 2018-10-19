@@ -1,33 +1,41 @@
 package pathFinding;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-
 import geometry.HalfEdge;
 import geometry.Point;
 import geometry.Polygon;
 import geometry.Vertex;
 
-public class StructuredMap {
+public class PhysicalMap {
 	
-	ArrayList<Vertex> vertices;
+	protected ArrayList<Vertex> vertices;
+	protected Polygon[] polygons;
 	
-	StructuredMap() {
+	PhysicalMap() {
 		this.vertices = new ArrayList<Vertex>();
 	}
 	
-	StructuredMap(Point[][] polygons) {
+	PhysicalMap(Point[][] polygons) {
 		this.vertices = new ArrayList<Vertex>(polygons.length);
-		for (Point[] polygon : polygons) {
-			this.addPolygon(polygon, 1);
+		this.polygons = new Polygon[polygons.length];
+		for (int i = 0; i < polygons.length; i++) {
+			this.polygons[i] = this.addPolygon(polygons[i], 1, i);
 		}
+		this.update();
 	}
 	
-	public StructuredMap(Point[][] polygons, double[] scalarCoeffs) {
+	public PhysicalMap(Point[][] polygons, double[] scalarCoeffs) {
 		this.vertices = new ArrayList<Vertex>(polygons.length);
+		this.polygons = new Polygon[polygons.length];
 		for (int i = 0; i < polygons.length; i++) {
-			this.addPolygon(polygons[i], scalarCoeffs[i]);
+			this.polygons[i] = this.addPolygon(polygons[i], scalarCoeffs[i], i);
 		}
+		this.update();
+	}
+	
+	private void update() {
+		for (Polygon polygon : this.polygons) polygon.updateEdges();
+		for (Vertex vertex : this.vertices) vertex.updateAngle();
 	}
 	
 	private HalfEdge addEdge(Vertex a, Vertex b) {
@@ -50,7 +58,7 @@ public class StructuredMap {
 		}
 	}
 	
-	public Polygon addPolygon(Point[] newVertices, double scalarSpeedCoeff) {
+	public Polygon addPolygon(Point[] newVertices, double scalarSpeedCoeff, int polygonTag) {
 		// on assume que les sommets sont dans l'ordre + sens direct (anti-horaire) de préférence
 		int n = newVertices.length;
 		HalfEdge[] edges = new HalfEdge[n];
@@ -65,9 +73,10 @@ public class StructuredMap {
 		edges[n-1].setNext(edges[0]);
 		
 		// création du polygone
-		Polygon poly = new Polygon(edges[n-1], scalarSpeedCoeff);
+		Polygon poly = new Polygon(edges[n-1], scalarSpeedCoeff, polygonTag);
 		for (HalfEdge edge : edges) edge.setPolygon(poly);
 		
 		return poly;
 	}
+	
 }

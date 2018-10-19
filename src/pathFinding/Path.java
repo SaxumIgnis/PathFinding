@@ -5,17 +5,28 @@ import java.util.ArrayList;
 import geometry.LocatedPoint;
 import geometry.Point;
 import geometry.Polygon;
+import geometry.Vertex;
 
 class BlockedPathException extends Exception{
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	
 }
 
 class Path {
+	
+	/** 
+	 * classe pour un itinéraire entre deux points
+	 * 
+	 * l'initialisation requiert
+	 * - un LocadetPoint comme point de départ (besoin de connaitre le polygone de départ)
+	 * - un LocatedPoint comme point d'arrivée (par sécurité : on s'assure que le polygone d'arrivée est celui voulu)
+	 * 
+	 * renvoie un chemin rectiligne (vu de dessus)
+	 * retourne une BlockedPathException si la ligne direct n'est pas possible
+	 * 
+	 * AB.merge(BC) -> AC
+	 */
 	
 	private ArrayList<Step> steps;
 	private double length;
@@ -29,7 +40,7 @@ class Path {
 		this.arrival = origin;
 	}
 	
-	Path(LocatedPoint origin, Point aim) throws BlockedPathException {
+	Path(LocatedPoint origin, LocatedPoint aim) throws BlockedPathException {
 		this.steps = new ArrayList<Step>();
 		this.length = 0;
 		this.arrival = (Point) origin;
@@ -40,6 +51,19 @@ class Path {
 			if (newStep.intersectedEdge.getCross() == Double.POSITIVE_INFINITY) throw new BlockedPathException();
 			newStep = newStep.innerStep.nextStep(aim, newStep.intersectedEdge);
 			this.add(newStep.innerStep);
+		}
+		
+		if (aim.getPolygon() != newStep.intersectedEdge.getPolygon()) throw new BlockedPathException();
+	}
+	
+	Path(Vertex origin, Vertex aim) throws BlockedPathException {
+		if (origin.isNeighbour(aim)) {
+			this.arrival = aim;
+			double speed = origin.distanceToNeighbour(aim);
+			this.steps = new ArrayList<Step>(1);
+			this.add(new Step(speed, origin, aim));
+		} else {
+			
 		}
 	}
 	
@@ -68,7 +92,7 @@ class Path {
 		this.length += newStep.length();
 	}
 	
-	boolean add(Step newStep) {
+	private boolean add(Step newStep) {
 		if (this.arrival.equals(newStep.getOrigin())) {
 			if (this.steps.add(newStep)) {
 				this.length += newStep.length();

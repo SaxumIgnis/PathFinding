@@ -1,6 +1,8 @@
 package geometry;
 
-public class Point extends Object implements Comparable<Object> {
+import java.util.Comparator;
+
+public class Point extends Object implements Comparable<Point> {
 	
 	protected final double x;
 	protected final double y;
@@ -55,8 +57,7 @@ public class Point extends Object implements Comparable<Object> {
 	}
 
 	@Override
-	public int compareTo(Object o) {
-		Point p = (Point) o;
+	public int compareTo(Point p) {
 		if (this.x < p.x) return -1;
 		if (this.x > p.x) return 1;
 		return 0;
@@ -66,6 +67,27 @@ public class Point extends Object implements Comparable<Object> {
 		LocatedPoint p = (LocatedPoint) this;
 		p.polygon = polygon;
 		return p;
+	}
+	
+	public static class ComparePoints implements Comparator<Point> {
+
+		private final Vector direction;
+		
+		public ComparePoints() {
+			this.direction = new Vector(1, 0, 0);
+		}
+		
+		public ComparePoints(Vector dir) {
+			this.direction = dir;
+		}
+		@Override
+		public int compare(Point a, Point b) {
+			double prod = this.direction.scalarProd(a.minus(b));
+			if (prod > 0) return 1;
+			if (prod < 0) return -1;
+			return 0;
+		}
+		
 	}
 	
 }

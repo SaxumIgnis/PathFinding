@@ -22,11 +22,11 @@ public class Vector extends Point {
 				);
 	}
 
-	double scalarProd(Vector v) {
+	public double scalarProd(Vector v) {
 		return(this.x * v.x + this.y * v.y + this.z * v.z);
 	}
 	
-	Vector vectorProduct(Vector v) {
+	public Vector vectorProduct(Vector v) {
 		return new Vector(
 				this.y * v.z - this.z * v.y,
 				this.z * v.x - this.x * v.z,

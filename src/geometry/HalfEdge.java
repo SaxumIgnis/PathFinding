@@ -2,7 +2,7 @@ package geometry;
 
 public class HalfEdge {
 
-	private Point origin;
+	final private Point origin;
 	private HalfEdge opposite;
 	private HalfEdge next;
 	private Polygon polygon;
@@ -23,9 +23,6 @@ public class HalfEdge {
 	public HalfEdge getOpposite() {
 		return opposite;
 	}
-	void setOrigin(Vertex v) {
-		this.origin = v;
-	}
 	
 	public void setPolygon(Polygon p) {
 		this.polygon = p;
@@ -43,6 +40,8 @@ public class HalfEdge {
 	
 	public void setCross(double time) {
 		this.crossTime = time;
+		this.opposite.crossTime = time;
+		// c'est plus simple quand c'est symétrique
 	}
 	
 	public double getCross() {
@@ -96,4 +95,8 @@ public class HalfEdge {
 		return this.opposite.origin.minus(this.origin);
 	}
 
+	double speedAlong() {
+		return Math.max(this.getPolygon().coeffSpeed(this.vector()), this.getOpposite().getPolygon().coeffSpeed(this.vector()));
+	}
+	
 }
