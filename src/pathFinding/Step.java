@@ -298,5 +298,74 @@ class Step {
 		throw new BlockedPathException("Vertex inside polygon");
 	}
 		
+	static StepEnd firstStep(Vertex origin, LocatedPoint aim) throws BlockedPathException {
+		HalfEdge firstPolygonEdge = origin.getEdge();
+		Point intersection = null;
+		do {
+			HalfEdge toTestEdge = firstPolygonEdge;
+			do {
+				if (!toTestEdge.isEdgeOf(origin)) {
 
+					intersection = toTestEdge.intersection(origin, aim);
+
+					if (intersection != null) return new StepEnd(
+							// l'objectif se trouve en dehors du polygone mais la ligne droite passe par ce polygone
+							new Step(
+									toTestEdge.getPolygon().coeffSpeed(aim.minus(origin)),
+									origin,
+									intersection
+									),
+							toTestEdge
+							);
+
+					toTestEdge = toTestEdge.getNext();
+				}
+			} while (!toTestEdge.equals(firstPolygonEdge));
+
+			firstPolygonEdge = firstPolygonEdge.getOpposite().getNext();
+		} while (firstPolygonEdge.equals(origin.getEdge()));
+
+		// le polygone de l'objectif a origin comme sommet
+		return new StepEnd(
+				new Step(
+						aim.getPolygon().coeffSpeed(aim.minus(origin)),
+						origin,
+						aim
+						),
+				null
+				);
+	}
+
+	static StepEnd firstStep(LocatedPoint origin, Vertex aim) throws BlockedPathException {
+		HalfEdge toTestEdge = origin.getPolygon().getEdge();
+		Point intersection = null;
+		do {
+			if (toTestEdge.isEdgeOf(aim)) return new StepEnd(
+					new Step(
+							toTestEdge.getPolygon().coeffSpeed(aim.minus(origin)),
+							origin,
+							aim
+							),
+					toTestEdge
+					);
+			
+			intersection = toTestEdge.intersection(origin, aim);
+			
+			if (intersection != null) return new StepEnd(
+					// l'objectif se trouve en dehors du polygone
+					new Step(
+							toTestEdge.getPolygon().coeffSpeed(aim.minus(origin)),
+							origin,
+							intersection
+							),
+					toTestEdge
+					);
+			
+			toTestEdge = toTestEdge.getNext();
+		} while (!toTestEdge.equals(origin.getPolygon().getEdge()));
+		
+		// l'objectif est à l'intérieur du polygone
+		throw new BlockedPathException("Vertex inside polygon");
+		
+	}	
 }

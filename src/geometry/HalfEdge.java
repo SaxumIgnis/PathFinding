@@ -2,20 +2,20 @@ package geometry;
 
 public class HalfEdge {
 
-	final private Point origin;
+	final private Vertex origin;
 	private HalfEdge opposite;
 	private HalfEdge next;
 	private Polygon polygon;
 	private double crossTime;
 	
-	public HalfEdge(Point p) {
+	public HalfEdge(Vertex p) {
 		this.origin = p;
 		this.opposite = null;
 		this.next = null;
 		this.polygon = null;
 		this.crossTime = 0;
 	}
-
+	
 	public HalfEdge getNext() {
 		return next;
 	}
@@ -48,7 +48,7 @@ public class HalfEdge {
 		return this.crossTime;
 	}
 	
-	Point getOrigin() {
+	public Vertex getOrigin() {
 		return this.origin;
 	}
 	

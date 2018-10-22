@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import geometry.LocatedPoint;
 import geometry.Point;
-import geometry.Polygon;
 import geometry.Vertex;
 
 class BlockedPathException extends Exception{
@@ -21,7 +20,7 @@ class BlockedPathException extends Exception{
 	
 }
 
-class Path {
+class Path implements Comparable<Path>{
 	
 	/** 
 	 * classe pour un itinéraire entre deux points
@@ -40,11 +39,16 @@ class Path {
 	private double length;
 	private Point arrival;
 	
-	@Deprecated
 	private Path(Point origin) {
 		this.steps = new ArrayList<Step>();
 		this.length = 0;
 		this.arrival = origin;
+	}
+	
+	Path() {
+		this.steps = null;
+		this.length = Double.POSITIVE_INFINITY;
+		this.arrival = null;
 	}
 
 	double length() {
@@ -89,27 +93,35 @@ class Path {
 			}
 		}
 	}
-
-	@Deprecated
-	private void add(Point p, Polygon area) throws BlockedPathException {
-		// on assume que le segment [this.arrival p] est dans le polygon area
-		double speed = area.coeffSpeed(p.minus(this.arrival));
-		Step newStep = new Step(speed, this.arrival, p);
-		this.steps.add(newStep);
-		this.arrival = p;
-		this.length += newStep.length();
-	}
-
-	@Deprecated
-	private void add(Point p, Polygon area, double startingEdgeCrossTime) throws BlockedPathException {
-		// on assume que le segment [this.arrival p] est dans le polygon area
-		double speed = area.coeffSpeed(p.minus(this.arrival));
-		Step newStep = new Step(speed, startingEdgeCrossTime, this.arrival, p);
-		this.steps.add(newStep);
-		this.arrival = p;
-		this.length += newStep.length();
+	
+	Path(LocatedPoint origin, Vertex aim) throws BlockedPathException {
+		this.steps = new ArrayList<Step>();
+		this.length = 0;
+		this.arrival = (Point) origin;
+		
+		StepEnd newStep = pathFinding.Step.firstStep(origin, aim);
+		this.add(newStep.innerStep);
+		while (this.arrival != aim) {
+			if (newStep.intersectedEdge.getCross() == Double.POSITIVE_INFINITY) throw new BlockedPathException("Incrossable edge");
+			newStep = newStep.innerStep.nextStep(aim, newStep.intersectedEdge);
+			this.add(newStep.innerStep);
+		}
 	}
 	
+	Path(Vertex origin, LocatedPoint aim) throws BlockedPathException {
+		this.steps = new ArrayList<Step>();
+		this.length = 0;
+		this.arrival = (Point) origin;
+		
+		StepEnd newStep = pathFinding.Step.firstStep(origin, aim);
+		this.add(newStep.innerStep);
+		while (this.arrival != aim) {
+			if (newStep.intersectedEdge.getCross() == Double.POSITIVE_INFINITY) throw new BlockedPathException("Incrossable edge");
+			newStep = newStep.innerStep.nextStep(aim, newStep.intersectedEdge);
+			this.add(newStep.innerStep);
+		}
+	}
+
 	private boolean add(Step newStep) {
 		if (this.arrival.equals(newStep.getOrigin())) {
 			if (this.steps.add(newStep)) {
@@ -132,6 +144,22 @@ class Path {
 		return false;
 	}
 	
+	Path add(Path pathToAdd) throws BlockedPathException {
+		if (!this.arrival.equals(pathToAdd.steps.get(0).getOrigin())) throw new BlockedPathException("Not consecutive paths");
+		
+		Path newPath = new Path(pathToAdd.arrival);
+		newPath.steps.addAll(this.steps);
+		newPath.steps.addAll(pathToAdd.steps);
+		
+		newPath.length = this.addLength(pathToAdd);
+		return newPath;
+	}
+	
+	double addLength(Path path) throws BlockedPathException {
+		if (this.arrival.equals(path.steps.get(0).getOrigin())) return this.length + path.length;
+		throw new BlockedPathException("Not consecutive paths");
+	}
+	
 	Point[] getPath() {
 		int n = this.steps.size();
 		Point[] path = new Point[n + 1];
@@ -140,5 +168,11 @@ class Path {
 		}
 		path[n] = this.arrival;
 		return path;
+	}
+
+	@Override
+	public int compareTo(Path path) {
+		if (path == null) return -1;
+		return (int) Math.signum(this.length - path.length);
 	}
 }
