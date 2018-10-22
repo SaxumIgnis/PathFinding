@@ -31,6 +31,7 @@ final class ProcessedMap extends PhysicalMap implements PathFinder {
 	public void process(Point[] singlePoints, int[] singlePointsLocation) {
 		
 		this.vertices.sort(new geometry.Point.ComparePoints());
+		int n = this.vertices.size();
 		
 		this.points = new ArrayList<LocatedPoint>(singlePoints.length);
 		this.paths = new ArrayList<ArrayList<Path>>(singlePoints.length);
@@ -40,14 +41,14 @@ final class ProcessedMap extends PhysicalMap implements PathFinder {
 		
 		this.points.sort(new geometry.Point.ComparePoints());
 		
-		for (Vertex v1 : this.vertices) {
-			for (Vertex v2 : this.vertices) {
-				if (v1 != v2) {
-					if (v1.isNeighbour(v2)) {
-						this.paths()v1.distanceToAccessibleNeighbour(v2)) {
-							
-						}
-					}
+		for (int i = 0; i < n; i++) {
+			Vertex v1 = this.vertices.get(i);
+			for (int j = 0; j < n; j++) {
+				Vertex v2 = this.vertices.get(j);
+				try {
+					this.paths.get(i).add(new Path(v1, v2));
+				} catch (BlockedPathException e) {
+					this.paths.get(i).add(null);
 				}
 			}
 		}

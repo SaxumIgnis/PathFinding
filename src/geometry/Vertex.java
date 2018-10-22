@@ -27,6 +27,10 @@ public class Vertex extends Point {
 		return this.angle.allows(out);
 	}
 	
+	public HalfEdge getEdge() {
+		return this.edges.get(0);
+	}
+	
 	public boolean isNeighbour(Vertex v) {
 		for (HalfEdge e : this.edges) {
 			if (v.equals(e.getOpposite().getOrigin())) return true;
@@ -49,15 +53,10 @@ public class Vertex extends Point {
 		for (HalfEdge e : this.edges) {
 			if (v.equals(e.getOpposite().getOrigin())) {
 				if (e.getPolygon().isCrossable() || e.getNext().getPolygon().isCrossable()) {
-					if (this.angle.allowsLarge(e.vector()) && v.angle.allowsLarge(e.vector())) {
-						if (e.getCross() < Double.POSITIVE_INFINITY) {
+					if (this.angle.allowsLarge(v) && v.angle.allowsLarge(this)) {
+						if (e.getCross() < Double.POSITIVE_INFINITY || this.angle.isCompatible(v.angle))
 							return this.distanceToAccessibleNeighbour(e);
-						} else {
-							// faire la différence entre la config "bateau" et la config "chaise" en tenant compte de l'imprécision des doubles
-							if (this.angle.isCompatible(v.angle)) {
-								return this.distanceToAccessibleNeighbour(e);
-							};
-						}
+
 					}
 				}
 				return Double.POSITIVE_INFINITY;

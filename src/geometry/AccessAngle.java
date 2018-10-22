@@ -101,7 +101,7 @@ class AccessAngle {
 		
 	}
 	
-	AccessAngle adddPoint(Point p) {
+	AccessAngle addPoint(Point p) {
 		if (this.access == Access.NULL) {
 			return this;
 		} else if (this.p1 == null) {

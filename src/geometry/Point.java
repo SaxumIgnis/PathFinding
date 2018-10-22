@@ -69,7 +69,7 @@ public class Point extends Object implements Comparable<Point> {
 		return p;
 	}
 	
-	public static class ComparePoints implements Comparator<Point> {
+	public static final class ComparePoints implements Comparator<Point> {
 
 		private final Vector direction;
 		
@@ -80,6 +80,7 @@ public class Point extends Object implements Comparable<Point> {
 		public ComparePoints(Vector dir) {
 			this.direction = dir;
 		}
+		
 		@Override
 		public int compare(Point a, Point b) {
 			double prod = this.direction.scalarProd(a.minus(b));

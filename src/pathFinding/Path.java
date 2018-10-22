@@ -9,6 +9,14 @@ import geometry.Vertex;
 
 class BlockedPathException extends Exception{
 
+	public BlockedPathException(String string) {
+		super(string);
+	}
+
+	public BlockedPathException() {
+		super();
+	}
+
 	private static final long serialVersionUID = 1L;
 	
 }
@@ -32,12 +40,15 @@ class Path {
 	private double length;
 	private Point arrival;
 	
-	
 	@Deprecated
-	Path(Point origin) {
+	private Path(Point origin) {
 		this.steps = new ArrayList<Step>();
 		this.length = 0;
 		this.arrival = origin;
+	}
+
+	double length() {
+		return this.length;
 	}
 	
 	Path(LocatedPoint origin, LocatedPoint aim) throws BlockedPathException {
@@ -45,35 +56,42 @@ class Path {
 		this.length = 0;
 		this.arrival = (Point) origin;
 		
-		StepEnd newStep = pathFinding.Step.firstStep(origin, aim, origin.getPolygon());
+		StepEnd newStep = pathFinding.Step.firstStep(origin, aim);
 		this.add(newStep.innerStep);
 		while (this.arrival != aim) {
-			if (newStep.intersectedEdge.getCross() == Double.POSITIVE_INFINITY) throw new BlockedPathException();
+			if (newStep.intersectedEdge.getCross() == Double.POSITIVE_INFINITY) throw new BlockedPathException("Incrossable edge");
 			newStep = newStep.innerStep.nextStep(aim, newStep.intersectedEdge);
 			this.add(newStep.innerStep);
 		}
 		
-		if (aim.getPolygon() != newStep.intersectedEdge.getPolygon()) throw new BlockedPathException();
+		//if (aim.getPolygon() != newStep.intersectedEdge.getPolygon()) throw new BlockedPathException("Arrived in wrong polygon");
 	}
 	
 	Path(Vertex origin, Vertex aim) throws BlockedPathException {
-		if (origin.isNeighbour(aim)) {
+		if (origin.equals(aim)) {
 			this.arrival = aim;
-			double speed = origin.distanceToNeighbour(aim);
-			this.steps = new ArrayList<Step>(1);
-			this.add(new Step(speed, origin, aim));
+			this.length = 0;
+			this.steps = new ArrayList<Step>();
 		} else {
-			
+			if (origin.isNeighbour(aim)) {
+				this.arrival = aim;
+				double speed = origin.distanceToNeighbour(aim);
+				this.steps = new ArrayList<Step>(1);
+				this.add(new Step(speed, origin, aim));
+			} else {
+				StepEnd newStep = pathFinding.Step.firstStep(origin, aim);
+				this.add(newStep.innerStep);
+				while (this.arrival != aim) {
+					if (newStep.intersectedEdge.getCross() == Double.POSITIVE_INFINITY) throw new BlockedPathException("Incrossable edge");
+					newStep = newStep.innerStep.nextStep(aim, newStep.intersectedEdge);
+					this.add(newStep.innerStep);
+				}
+			}
 		}
-	}
-	
-	
-	double length() {
-		return this.length;
 	}
 
 	@Deprecated
-	void add(Point p, Polygon area) throws BlockedPathException {
+	private void add(Point p, Polygon area) throws BlockedPathException {
 		// on assume que le segment [this.arrival p] est dans le polygon area
 		double speed = area.coeffSpeed(p.minus(this.arrival));
 		Step newStep = new Step(speed, this.arrival, p);
@@ -83,7 +101,7 @@ class Path {
 	}
 
 	@Deprecated
-	void add(Point p, Polygon area, double startingEdgeCrossTime) throws BlockedPathException {
+	private void add(Point p, Polygon area, double startingEdgeCrossTime) throws BlockedPathException {
 		// on assume que le segment [this.arrival p] est dans le polygon area
 		double speed = area.coeffSpeed(p.minus(this.arrival));
 		Step newStep = new Step(speed, startingEdgeCrossTime, this.arrival, p);

@@ -99,4 +99,8 @@ public class HalfEdge {
 		return Math.max(this.getPolygon().coeffSpeed(this.vector()), this.getOpposite().getPolygon().coeffSpeed(this.vector()));
 	}
 	
+	public boolean isEdgeOf(Vertex v) {
+		return v.equals(this.origin) || v.equals(this.next.origin);
+	}
+	
 }
