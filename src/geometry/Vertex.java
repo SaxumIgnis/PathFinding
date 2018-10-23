@@ -65,4 +65,34 @@ public class Vertex extends Point {
 		return Double.POSITIVE_INFINITY;
 	}
 	
+	private HalfEdge directionPolygon(Point dir) {
+		for (HalfEdge e : this.edges) {
+			AccessAngle AngleE = new AccessAngle(this, e.getOpposite().getOrigin(), e.previous().getOrigin());
+			if (AngleE.contains(dir)) return e;
+		}
+		return null;
+	}
+	
+	private static double timeToCross(HalfEdge start, HalfEdge end) {
+		if (start.getOrigin().equals(end.getOrigin())) {
+			if (start.equals(end)) return 0;
+			HalfEdge edge = start.getOpposite();
+			double res = edge.getCross();
+			while (!edge.getNext().equals(end)) {
+				edge = edge.getNext().getOpposite();
+				res += edge.getCross();
+			}
+			return res;
+		} else {
+			return Double.POSITIVE_INFINITY;
+		}
+	}
+
+	public double timeToCross(Point origin, Point aim) {
+		HalfEdge dirOrigin = this.directionPolygon(origin);
+		HalfEdge dirAim = this.directionPolygon(aim);
+		
+		return Math.min(timeToCross(dirOrigin, dirAim), timeToCross(dirAim, dirOrigin));
+	}
+	
 }

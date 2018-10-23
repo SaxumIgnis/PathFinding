@@ -75,8 +75,8 @@ class AccessAngle {
 		return Math.abs(v.angle2D(this.center.minus(this.p1)) - v.angle2D(this.center.minus(this.p2))) < Math.PI;
 	}
 	
-	private boolean contains(Point p) {
-		return this.contains(p.minus(this.center));
+	boolean contains(Point p) {
+		return this.contains(p.minus(this.center)) && !this.allows(p);
 	}
 	
 	AccessAngle addVector(Vector v) {

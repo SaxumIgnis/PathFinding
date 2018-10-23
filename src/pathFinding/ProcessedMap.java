@@ -1,7 +1,10 @@
 package pathFinding;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+
 import geometry.HalfEdge;
 import geometry.LocatedPoint;
 import geometry.Point;
@@ -9,9 +12,12 @@ import geometry.Vertex;
 
 final class ProcessedMap extends PhysicalMap implements PathFinder {
 
+	enum ProcessAlgo {FLOYD_WARSHALL, DIJKTRA};
+	
 	@Deprecated
 	private ArrayList<LocatedPoint> points;
 	public final int RESEARCH_AREA = 2;
+	public ProcessAlgo algo = ProcessAlgo.DIJKTRA;
 	
 	private Path[][] paths;
 	
@@ -27,108 +33,98 @@ final class ProcessedMap extends PhysicalMap implements PathFinder {
 		super(polygons, scalarCoeffs);
 		this.process(singlePoints, singlePointsLocation); 
 	}
+
 	
+	private void processFloydWarshall() {
+		
+		int n = this.vertices.size();		
+		
+		for (int k = 0; k < n; k++)
+			for (int i = 0; i < n; i++)
+				for (int j = 0; j < n; j++) {
+					try {
+						if (this.paths[i][j].length() < this.paths[i][k].addLength(this.paths[k][j])) {
+							this.paths[i][j] = this.paths[i][k].add(this.paths[k][j]);
+						}
+					} catch (BlockedPathException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+		}
+		
+	}
+	
+	private void processDijkstra() {
+		
+		int n = this.vertices.size();
+		
+		// copie des chemins directs
+		ArrayList<HashMap<Integer, Path>> directPaths = new ArrayList<HashMap<Integer, Path>>(n);
+		for (int i = 0; i < n; i++)
+			for (int j = 0; j < n; j++)
+				if (this.paths[i][j].length() < Double.POSITIVE_INFINITY)
+					directPaths.get(i).put(j, this.paths[i][j]);
+		
+		
+		for (int i = 0; i < n; i++) {
+			// initialisation
+			HashSet<Integer> heap = new HashSet<Integer>(n);
+			for (int j = 0; j < n; j++) heap.add(j);
+			
+			while (!heap.isEmpty()) {
+				// recherche du sommet de heap le plus proche d'index
+				int k = -1;
+				double minDist = Double.POSITIVE_INFINITY;
+				for (int j : heap) {
+					if (paths[i][j].length() < minDist) {
+						k = i;
+						minDist = paths[i][j].length();
+					}
+				}
+				
+				if (k == -1) {
+					heap.clear();
+				} else {
+				
+					heap.remove(k);
+					
+					for (Map.Entry<Integer,Path> keyVal : directPaths.get(k).entrySet()) {
+						int j = keyVal.getKey();
+						Path kj = keyVal.getValue();
+						try {
+							if (this.paths[i][j].length() > this.paths[i][k].addLength(kj)) {
+								this.paths[i][j] = this.paths[i][k].add(kj);
+								heap.add(j);
+							}
+						} catch (BlockedPathException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				}
+				
+			}
+			
+		}
+	}
+
 	private void process() {
 		
 		int n = this.vertices.size();
 		this.paths = new Path[n][n];
-		
+
 		this.vertices.sort(new geometry.Point.ComparePoints());
 
-		for (int i = 0; i < n; i++)
+		for (int i = 0; i < n; i ++)
 			for (int j = 0; j < n; j++)
-				this.paths[i][j] = new Path();
-				// on initialise les distance à Double.POSITIVE_INFINITY
-		
-		ArrayList<HashSet<Integer>> aNeighbours = new ArrayList<HashSet<Integer>>(n);
-		ArrayList<HashSet<Integer>> pNeighbours = new ArrayList<HashSet<Integer>>(n);
-		
-		
-		// Djikstra sans l'inégalité triangulaire
-		for (int i = 1; i < n; i++) {
-			Vertex vi = this.vertices.get(i);
-			for (int j = 0; j < i; j++) {
-				Vertex vj = this.vertices.get(j);
-				
-				// j -> i
 				try {
-					Path newPath = new Path(vj, vi); // -> BlockedPathException si pas de chemin direct
-					
-					pNeighbours.get(j).add(i);
-					aNeighbours.get(i).add(j);
-					
-					if (newPath.compareTo(this.paths[j][i]) == -1) {
-						
-						// k -> j -> i  &&  k -> i
-						for (int k : aNeighbours.get(j)) {
-							if (aNeighbours.get(i).contains(k)) {
-								if (this.paths[k][i].length() < this.paths[k][j].addLength(newPath)) {
-									this.paths[k][i] = this.paths[k][j].add(this.paths[j][i]);
-								}
-							} else {
-								pNeighbours.get(k).add(i);
-								aNeighbours.get(i).add(k);
-								this.paths[k][i] = this.paths[k][j].add(this.paths[j][i]);
-							}
-								
-						}
-						
-						// j -> i -> k  && j -> k
-						for (int k : pNeighbours.get(i)) {
-							if (pNeighbours.get(j).contains(k)) {
-								if (this.paths[j][k].length() < newPath.addLength(this.paths[i][k])) {
-									this.paths[j][k] = this.paths[j][i].add(this.paths[i][k]);
-								}
-							} else {
-								pNeighbours.get(j).add(k);
-								aNeighbours.get(k).add(j);
-								this.paths[j][k] = this.paths[j][i].add(this.paths[i][k]);
-							}
-								
-						}
-					}
-				} catch (BlockedPathException e) { }
-				
-				// i -> j
-				try {
-					Path newPath = new Path(vi, vj);
-					
-					pNeighbours.get(i).add(j);
-					aNeighbours.get(j).add(i);
-					
-					if (newPath.compareTo(this.paths[i][j]) == -1) {
-						
-						// i -> j -> k  &&  i -> k
-						for (int k : pNeighbours.get(j)) {
-							if (pNeighbours.get(i).contains(k)) {
-								if (this.paths[i][k].length() < this.paths[j][k].addLength(newPath)) {
-									this.paths[i][k] = this.paths[i][j].add(this.paths[j][k]);
-								}
-							} else {
-								pNeighbours.get(i).add(k);
-								aNeighbours.get(k).add(i);
-								this.paths[i][k] = this.paths[i][j].add(this.paths[j][k]);
-							}
-								
-						}
-						
-						// k -> i -> j  && k -> j
-						for (int k : aNeighbours.get(i)) {
-							if (aNeighbours.get(j).contains(k)) {
-								if (this.paths[k][j].length() < this.paths[k][i].addLength(newPath)) {
-									this.paths[k][j] = this.paths[k][i].add(this.paths[i][j]);
-								}
-							} else {
-								pNeighbours.get(k).add(j);
-								aNeighbours.get(j).add(k);
-								this.paths[k][j] = this.paths[k][i].add(this.paths[i][j]);
-							}
-								
-						}
-					}
-				} catch (BlockedPathException e) { }
-			}
-		}
+					this.paths[i][j] = new Path(this.vertices.get(i), this.vertices.get(j));
+				} catch (BlockedPathException e) {
+					this.paths[i][j] = new Path(); // longueur infinie
+				}
+		
+		if (this.algo == ProcessAlgo.FLOYD_WARSHALL) this.processFloydWarshall();
+		if (this.algo == ProcessAlgo.DIJKTRA) this.processDijkstra();
 	}
 	
 	@Deprecated

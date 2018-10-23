@@ -59,9 +59,13 @@ class Step {
 	}
 	
 	double length() {
-		return this.vector().length() / this.speed + this.startTime;
+		return this.vector().length() / this.speed + this.getStartTime();
 	}
 	
+	public double getStartTime() {
+		return startTime;
+	}
+
 	@Deprecated
 	StepEnd nextStep(Point aim, HalfEdge intersectedEdge) throws BlockedPathException {
 		HalfEdge toTestEdge = intersectedEdge.getOpposite().getNext();
