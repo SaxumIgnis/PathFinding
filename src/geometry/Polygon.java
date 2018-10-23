@@ -54,4 +54,30 @@ public class Polygon implements Comparable<Polygon>{
 	public int compareTo(Polygon polygon) {
 		return this.tag - polygon.tag;
 	}
+	
+	double area() {
+		// aire totale du ploygone (problème si le polygone n'est pas convexe) par somme des aires des triangles ayant p pour sommet
+		Point p = (Point) this.edge.getOrigin();
+		HalfEdge currentEdge = this.edge.getNext();
+		double res = 0;
+		do {
+			res += currentEdge.getOrigin().minus(p).vectorProduct(currentEdge.vector()).length();
+			currentEdge = currentEdge.getNext();
+		} while (!currentEdge.getNext().equals(this.edge));
+		return res/2;
+	}
+	
+	double areaFlat() {
+		// aire algébrique du polygone projeté dans le plan horizontal (positive si sens direct, négative si sens indirect)
+		Point p = (Point) this.edge.getOrigin();
+		HalfEdge currentEdge = this.edge.getNext();
+		double res = 0;
+		do {
+			Point q = currentEdge.getOrigin();
+			Vector v = currentEdge.vector();
+			res += (q.x - p.x) * v.y - (q.y - p.y) * v.x;
+			currentEdge = currentEdge.getNext();
+		} while (!currentEdge.getNext().equals(this.edge));
+		return res/2;
+	}
 }
