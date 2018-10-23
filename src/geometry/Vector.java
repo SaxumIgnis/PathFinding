@@ -50,4 +50,9 @@ public class Vector extends Point {
 	Vector toPlan() {
 		return new Vector(this.x, this.y, (double) 0);
 	}
+	
+	int rotSense(Vector v) {
+		// retourne 1 si l'angle this -> v est dans le sens direct, -1 sinon et 0 si alignés
+		return (int) Math.signum(this.x * v.y - this.y * v.x);
+	}
 }

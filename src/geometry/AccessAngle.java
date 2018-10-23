@@ -43,12 +43,11 @@ class AccessAngle {
 		this.p2 = null;
 	}
 	
-	boolean allows(Vector v) {
+	private boolean allows(Vector v) {
 		if (this.access == Access.TOTAL) return true;
 		if (this.access == Access.NULL) return false;
 		
-		return (((short) Math.signum(v.angle2D(this.center.minus(this.p1)))) == ((short) Math.signum(v.angle2D(this.center.minus(this.p2)))));
-		// equivalent de v.angle2D(this.v1) * v.angle2D(this.v2) > 0 mais sans multiplication de double
+		return v.rotSense(this.p1.minus(center)) == v.rotSense(this.p2.minus(center));
 	}
 	
 	boolean allows(Point p) {
@@ -59,8 +58,7 @@ class AccessAngle {
 		if (this.access == Access.TOTAL) return true;
 		if (this.access == Access.NULL) return false;
 
-		return Math.abs(((short) Math.signum(v.angle2D(this.center.minus(this.p1)))) - ((short) Math.signum(v.angle2D(this.center.minus(this.p2))))) < 2;
-		// equivalent de v.angle2D(this.v1) * v.angle2D(this.v2) >= 0 mais sans multiplication de double		
+		return Math.abs(v.rotSense(this.p1.minus(center)) - v.rotSense(this.p2.minus(center))) < 2;		
 	}
 	
 	boolean allowsLarge(Point p) {
