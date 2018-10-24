@@ -5,7 +5,6 @@ Système de pathfinding
 
 - carte homéomorphe à un plan (pas de ponts ou de tunnels)
 - prise en compte de la pente dans la vitesse de déplacement
-- coefficient de vitesse locale
 - "facteur de lag" RESEARCH_AREA de la classe ProcessedMap (plus il est grand, meilleur est le chemin trouvé mais plus ça prend de temps => voir s'il pourrait dépendre du nombre de points sur la carte)
 
 
