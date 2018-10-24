@@ -1,82 +1,85 @@
 package pathFinding;
 
 import java.util.ArrayList;
-import geometry.HalfEdge;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Arrays;
+
+import geometry.BinaryEdge;
 import geometry.Point;
-import geometry.Polygon;
 import geometry.Vertex;
 
 public class PhysicalMap {
 	
 	protected ArrayList<Vertex> vertices;
-	protected Polygon[] polygons;
 	
 	PhysicalMap() {
 		this.vertices = new ArrayList<Vertex>();
 	}
 	
-	PhysicalMap(Point[][] polygons) {
-		this.vertices = new ArrayList<Vertex>(polygons.length);
-		this.polygons = new Polygon[polygons.length];
-		for (int i = 0; i < polygons.length; i++) {
-			this.polygons[i] = this.addPolygon(polygons[i], 1, i);
+	class EdgeComparator implements Comparator<BinaryEdge> {
+
+		@Override
+		public int compare(BinaryEdge arg0, BinaryEdge arg1) {
+			return (int) Math.signum(arg0.length() - arg0.length());
 		}
-		this.update();
+		
 	}
 	
-	public PhysicalMap(Point[][] polygons, double[] scalarCoeffs) {
-		this.vertices = new ArrayList<Vertex>(polygons.length);
-		this.polygons = new Polygon[polygons.length];
-		for (int i = 0; i < polygons.length; i++) {
-			this.polygons[i] = this.addPolygon(polygons[i], scalarCoeffs[i], i);
+	private static boolean intersects(BinaryEdge edge, HashSet<BinaryEdge> chosenEdges) {
+		// retourne true si edge croise une des arêtes de chosenEdges
+		for (BinaryEdge chosenEdge : chosenEdges) {
+			if (chosenEdge.intersection(edge) != null) {
+				return true;
+			}
 		}
-		this.update();
+		return false;
 	}
 	
-	private void update() {
-		for (Polygon polygon : this.polygons) polygon.updateEdges();
-		for (Vertex vertex : this.vertices) vertex.updateAngle();
+	PhysicalMap(Point[] points, Point[][] edges) {
+		
+		HashSet<BinaryEdge> unAddedEdges = new HashSet<BinaryEdge>();
+		HashSet<BinaryEdge> chosenEdges = new HashSet<BinaryEdge>();
+		HashSet<Vertex> tempVertices = new HashSet<Vertex>();
+
+		for (Point point : points) {
+			tempVertices.add((Vertex) point);
+		}
+		
+		// triangularisation de Delaunay avec des arêtes forcées
+		
+		for (Point[] edge : edges) {
+			BinaryEdge binaryEdge = new BinaryEdge((Vertex) edge[0], (Vertex) edge[1], false);
+			chosenEdges.add(binaryEdge);
+			tempVertices.add(binaryEdge.getEnd());
+			tempVertices.add(binaryEdge.getOrigin());
+		}
+
+		this.vertices = new ArrayList<Vertex>(tempVertices);
+		
+		for (Vertex v : this.vertices) {
+			for (Vertex w : this.vertices) {
+				BinaryEdge edge = new BinaryEdge(v, w, true);
+				if (!chosenEdges.contains(edge)) {
+					unAddedEdges.add(edge);
+				}
+			}
+		}
+		
+		BinaryEdge[] edgesArray = (BinaryEdge[]) unAddedEdges.toArray();
+		Arrays.parallelSort(edgesArray, new EdgeComparator());
+		
+		for (BinaryEdge edge : edgesArray) {
+			if (!intersects(edge, chosenEdges)) {
+				chosenEdges.add(edge);
+				edge.getOrigin().addEdge(edge.getEnd(), edge.getCross());
+			}
+		}
+		
+		// vérification
+		for (Vertex vertex : this.vertices) vertex.update();
 	}
 	
-	private HalfEdge addEdge(Vertex a, Vertex b) {
-		// retourne l'arrête interne
-		
-		if (!this.vertices.contains(a)) this.vertices.add(a);
-		if (!this.vertices.contains(b)) this.vertices.add(b);
-		if (a.isNeighbour(b)) {
-			HalfEdge ab = a.edgeToNeighbour(b);
-			ab.getOpposite().setCross(0);
-			return ab;
-		} else {
-			HalfEdge ab = new HalfEdge(a);
-			HalfEdge ba = new HalfEdge(b);
-			ab.setOpposite(ba);
-			a.addEdge(ab);
-			b.addEdge(ba);
-			ab.setCross(Double.POSITIVE_INFINITY);
-			return ab;
-		}
-	}
 	
-	public Polygon addPolygon(Point[] newVertices, double scalarSpeedCoeff, int polygonTag) {
-		// on assume que les sommets sont dans l'ordre + sens direct (anti-horaire) de préférence
-		int n = newVertices.length;
-		HalfEdge[] edges = new HalfEdge[n];
-		// tableau qui contiendra les arrêtes internes du polygone
-		
-		// initialisation des arrêtes et sommets
-		edges[n-1] = this.addEdge((Vertex) newVertices[n-1], (Vertex) newVertices[0]);
-		for (int i = n-2; i >= 0; i--) {
-			edges[i] = this.addEdge((Vertex) newVertices[i], (Vertex) newVertices[i+1]);
-			edges[i].setNext(edges[i+1]);
-		}
-		edges[n-1].setNext(edges[0]);
-		
-		// création du polygone
-		Polygon poly = new Polygon(edges[n-1], scalarSpeedCoeff, polygonTag);
-		for (HalfEdge edge : edges) edge.setPolygon(poly);
-		
-		return poly;
-	}
 	
 }

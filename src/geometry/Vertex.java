@@ -13,14 +13,9 @@ public class Vertex extends Point {
 		angle = new AccessAngle(true);
 	}
 	
-	public void addEdge(HalfEdge e) {
-		this.edges.add(e);
-		if (e.getCross() == Double.POSITIVE_INFINITY) this.angle = this.angle.addVector(e.vector());
-	}
-	
 	public void updateAngle() {
 		this.angle = new AccessAngle(true);
-		for (HalfEdge e : this.edges) if (e.getCross() == Double.POSITIVE_INFINITY) this.angle = this.angle.addVector(e.vector());
+		for (HalfEdge e : this.edges) if (!e.getCross()) this.angle = this.angle.addVector(e.getVector());
 	}
 	
 	public boolean allows(Vector out) {
@@ -46,7 +41,7 @@ public class Vertex extends Point {
 	}
 	
 	private double distanceToAccessibleNeighbour(HalfEdge e) {
-		return Math.max(e.getPolygon().coeffSpeed(e.vector()), e.getOpposite().getPolygon().coeffSpeed(e.vector()));
+		return Math.max(e.getPolygon().coeffSpeed(e.getVector()), e.getOpposite().getPolygon().coeffSpeed(e.getVector()));
 	}
 	
 	public double distanceToNeighbour(Vertex v) {
@@ -54,7 +49,7 @@ public class Vertex extends Point {
 			if (v.equals(e.getOpposite().getOrigin())) {
 				if (e.getPolygon().isCrossable() || e.getNext().getPolygon().isCrossable()) {
 					if (this.angle.allowsLarge(v) && v.angle.allowsLarge(this)) {
-						if (e.getCross() < Double.POSITIVE_INFINITY || this.angle.isCompatible(v.angle))
+						if (e.getCross() || this.angle.isCompatible(v.angle))
 							return this.distanceToAccessibleNeighbour(e);
 
 					}
@@ -66,33 +61,84 @@ public class Vertex extends Point {
 	}
 	
 	private HalfEdge directionPolygon(Point dir) {
-		for (HalfEdge e : this.edges) {
-			AccessAngle AngleE = new AccessAngle(this, e.getOpposite().getOrigin(), e.previous().getOrigin());
-			if (AngleE.contains(dir)) return e;
-		}
-		return null;
-	}
-	
-	private static double timeToCross(HalfEdge start, HalfEdge end) {
-		if (start.getOrigin().equals(end.getOrigin())) {
-			if (start.equals(end)) return 0;
-			HalfEdge edge = start.getOpposite();
-			double res = edge.getCross();
-			while (!edge.getNext().equals(end)) {
-				edge = edge.getNext().getOpposite();
-				res += edge.getCross();
-			}
-			return res;
-		} else {
-			return Double.POSITIVE_INFINITY;
-		}
-	}
-
-	public double timeToCross(Point origin, Point aim) {
-		HalfEdge dirOrigin = this.directionPolygon(origin);
-		HalfEdge dirAim = this.directionPolygon(aim);
 		
-		return Math.min(timeToCross(dirOrigin, dirAim), timeToCross(dirAim, dirOrigin));
+		Vector v = dir.minus(this);
+		
+		// recherche parmi les angles aigus
+		for (HalfEdge e : this.edges) {
+			if (v.rotSense(e.getVector()) == 1 && v.rotSense(e.getOpposite().getNext().getVector()) == -1 &&
+					e.getOpposite().getNext().getVector().rotSense(e.getVector()) == 1) {
+				return e.getOpposite();
+			}
+		}
+		
+		// recherche d'un angle obtus
+		for (HalfEdge e : this.edges) {
+			if (e.getOpposite().getNext().getVector().rotSense(e.getVector()) == -1) {
+				return e.getOpposite();
+			}
+		}
+		
+		return this.edges.get(0);
+			
 	}
 	
+	private void addHalfEdge(HalfEdge e) {
+		if (this.edges.isEmpty()) {
+			e.getOpposite().setNext(e);
+			e.setPolygon(new Polygon(e, 1));
+			e.getOpposite().setPolygon(e.getPolygon());
+		} else {
+			if (!this.edges.contains(e)) {
+				HalfEdge previous = this.directionPolygon(e.getEnd());
+				HalfEdge next = previous.getNext();
+				previous.setNext(e);
+				e.getOpposite().setNext(next);
+				
+				// mise à jour des polygones
+				
+				e.updatePolygon(previous.getPolygon());
+				
+				if (e.getOpposite().getPolygon() == null) {
+					e.getOpposite().updatePolygon(new Polygon(e.getOpposite(), previous.getPolygon().coeffSpeed(new Vector(0, 0, 0))));
+				}
+				
+				this.edges.add(e);
+				if (!e.getCross()) this.angle = this.angle.addVector(e.getVector());
+			}
+		}
+	}
+	
+	public void addEdge(Vertex end, boolean crossable) {
+		if (!this.isNeighbour(end)) {
+			HalfEdge e = new HalfEdge(this, end, crossable);
+			if (e.getOpposite() == null) {
+				e.setOpposite(new HalfEdge(e.getEnd(), e.getOrigin(), e.getCross()));
+			}
+			if (this.edges.isEmpty()) {
+				e.getOpposite().setNext(e);
+			} else {
+				HalfEdge previous = this.directionPolygon(e.getEnd());
+				HalfEdge next = previous.getNext();
+				previous.setNext(e);
+				e.getOpposite().setNext(next);
+			}
+			this.edges.add(e);
+			e.getEnd().addHalfEdge(e.getOpposite());
+			if (!e.getCross()) this.angle = this.angle.addVector(e.getVector());
+		}
+	}
+	
+	public void update() {
+		for (HalfEdge edge : this.edges) {
+			if (!edge.equals(edge.getNext().getNext().getNext())) {
+				// le polygone n'est pas un triangle => on l'interdit
+				edge.setPolygon(null);
+				edge.setCross(false);
+			}
+			if (!edge.getPolygon().equals(edge.getNext().getPolygon())) {
+				edge.updatePolygon(edge.getPolygon());
+			}
+		}
+	}
 }

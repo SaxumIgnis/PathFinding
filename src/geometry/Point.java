@@ -38,7 +38,7 @@ public class Point extends Object implements Comparable<Point> {
 				);
 	}
 	
-	Point add(Vector v) {
+	Point plus(Vector v) {
 		return new Point(
 				this.x + v.x,
 				this.y + v.y,

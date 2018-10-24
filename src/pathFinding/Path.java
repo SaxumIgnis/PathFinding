@@ -63,7 +63,7 @@ class Path implements Comparable<Path>{
 		StepEnd newStep = pathFinding.Step.firstStep(origin, aim);
 		this.add(newStep.innerStep);
 		while (this.arrival != aim) {
-			if (newStep.intersectedEdge.getCross() == Double.POSITIVE_INFINITY) throw new BlockedPathException("Incrossable edge");
+			if (!newStep.intersectedEdge.getCross()) throw new BlockedPathException("Incrossable edge");
 			newStep = newStep.innerStep.nextStep(aim, newStep.intersectedEdge);
 			this.add(newStep.innerStep);
 		}
@@ -86,7 +86,7 @@ class Path implements Comparable<Path>{
 				StepEnd newStep = pathFinding.Step.firstStep(origin, aim);
 				this.add(newStep.innerStep);
 				while (this.arrival != aim) {
-					if (newStep.intersectedEdge.getCross() == Double.POSITIVE_INFINITY) throw new BlockedPathException("Incrossable edge");
+					if (!newStep.intersectedEdge.getCross()) throw new BlockedPathException("Incrossable edge");
 					newStep = newStep.innerStep.nextStep(aim, newStep.intersectedEdge);
 					this.add(newStep.innerStep);
 				}
@@ -102,7 +102,7 @@ class Path implements Comparable<Path>{
 		StepEnd newStep = pathFinding.Step.firstStep(origin, aim);
 		this.add(newStep.innerStep);
 		while (this.arrival != aim) {
-			if (newStep.intersectedEdge.getCross() == Double.POSITIVE_INFINITY) throw new BlockedPathException("Incrossable edge");
+			if (!newStep.intersectedEdge.getCross()) throw new BlockedPathException("Incrossable edge");
 			newStep = newStep.innerStep.nextStep(aim, newStep.intersectedEdge);
 			this.add(newStep.innerStep);
 		}
@@ -116,7 +116,7 @@ class Path implements Comparable<Path>{
 		StepEnd newStep = pathFinding.Step.firstStep(origin, aim);
 		this.add(newStep.innerStep);
 		while (this.arrival != aim) {
-			if (newStep.intersectedEdge.getCross() == Double.POSITIVE_INFINITY) throw new BlockedPathException("Incrossable edge");
+			if (!newStep.intersectedEdge.getCross()) throw new BlockedPathException("Incrossable edge");
 			newStep = newStep.innerStep.nextStep(aim, newStep.intersectedEdge);
 			this.add(newStep.innerStep);
 		}
@@ -124,22 +124,6 @@ class Path implements Comparable<Path>{
 	
 	private Point start() {
 		return this.steps.get(0).getOrigin();
-	}
-
-	private void setStartTime(double startTime) {
-		Step step = this.steps.get(0);
-		try {
-			this.steps.set(0, new Step(
-					step.speed(),
-					startTime,
-					step.getOrigin(),
-					step.getEnd()
-					));
-		} catch (BlockedPathException e) {
-			// n'est pas sensé arriver (seulement si step.speed = 0)
-			e.printStackTrace();
-		}
-		this.length += startTime - step.getStartTime();
 	}
 	
 	private boolean add(Step newStep) {
@@ -155,12 +139,6 @@ class Path implements Comparable<Path>{
 	
 	void merge(Path pathToAdd) throws BlockedPathException {
 		if (!this.arrival.equals(pathToAdd.start())) throw new BlockedPathException("Not consecutive paths");
-		
-		if (this.arrival instanceof Vertex) {
-			pathToAdd.setStartTime(((Vertex) this.arrival).timeToCross(
-					this.steps.get(this.steps.size()-1).getOrigin(), pathToAdd.steps.get(0).getEnd()
-					));
-		}
 
 		if (this.steps.addAll(pathToAdd.steps)) {
 			this.arrival = pathToAdd.arrival;
@@ -170,12 +148,6 @@ class Path implements Comparable<Path>{
 	
 	Path add(Path pathToAdd) throws BlockedPathException {
 		if (!this.arrival.equals(pathToAdd.steps.get(0).getOrigin())) throw new BlockedPathException("Not consecutive paths");
-		
-		if (this.arrival instanceof Vertex) {
-			pathToAdd.setStartTime(((Vertex) this.arrival).timeToCross(
-					this.steps.get(this.steps.size()-1).getOrigin(), pathToAdd.steps.get(0).getEnd()
-					));
-		}
 		
 		Path newPath = new Path(pathToAdd.arrival);
 		newPath.steps.addAll(this.steps);
@@ -187,14 +159,7 @@ class Path implements Comparable<Path>{
 	
 	double addLength(Path pathToAdd) throws BlockedPathException {
 		if (this.arrival.equals(pathToAdd.steps.get(0).getOrigin())) {
-			if (this.arrival instanceof Vertex) {
-				double crossTime = ((Vertex) this.arrival).timeToCross(
-						this.steps.get(this.steps.size()-1).getOrigin(), pathToAdd.steps.get(0).getEnd()
-						);
-				return this.length + pathToAdd.length + crossTime - pathToAdd.steps.get(0).getStartTime();
-			} else {
-				return this.length + pathToAdd.length;
-			}
+			return this.length + pathToAdd.length;
 		}
 		throw new BlockedPathException("Not consecutive paths");
 	}

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Random;
 
 import geometry.HalfEdge;
 import geometry.LocatedPoint;
@@ -14,26 +15,17 @@ final class ProcessedMap extends PhysicalMap implements PathFinder {
 
 	enum ProcessAlgo {FLOYD_WARSHALL, DIJKTRA};
 	
-	@Deprecated
-	private ArrayList<LocatedPoint> points;
 	public final int RESEARCH_AREA = 2;
 	public ProcessAlgo algo = ProcessAlgo.DIJKTRA;
 	
 	private Path[][] paths;
 	
-	public ProcessedMap(Point[][] polygons, double[] scalarCoeffs) {
+	public ProcessedMap(Point[] points, Point[][] edges) {
 		
-		super(polygons, scalarCoeffs);
+		super(points, edges);
 		
 		this.process();
 	}
-	
-	@Deprecated
-	public ProcessedMap(Point[][] polygons, double[] scalarCoeffs, Point[] singlePoints, int[] singlePointsLocation) {
-		super(polygons, scalarCoeffs);
-		this.process(singlePoints, singlePointsLocation); 
-	}
-
 	
 	private void processFloydWarshall() {
 		
@@ -47,7 +39,6 @@ final class ProcessedMap extends PhysicalMap implements PathFinder {
 							this.paths[i][j] = this.paths[i][k].add(this.paths[k][j]);
 						}
 					} catch (BlockedPathException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 		}
@@ -127,114 +118,26 @@ final class ProcessedMap extends PhysicalMap implements PathFinder {
 		if (this.algo == ProcessAlgo.DIJKTRA) this.processDijkstra();
 	}
 	
-	@Deprecated
-	public void process(Point[] singlePoints, int[] singlePointsLocation) {
-
-		this.points = new ArrayList<LocatedPoint>(singlePoints.length);
-		
-		for (int i = 0; i < singlePoints.length; i++) {
-			this.points.add(singlePoints[i].locate(this.polygons[i]));
-		}
-		
-		this.points.sort(new geometry.Point.ComparePoints());
-		this.process();
+	private LocatedPoint randomLocatedPoint(Random generator) {
+		return this.vertices.get(generator.nextInt(this.vertices.size())).getEdge().getPolygon().center();
 	}
 	
-	@Deprecated
-	private LocatedPoint halfClosestPoint(Point p, int index, int j) {
-		LocatedPoint closestPoint = this.points.get(index);
-		while (index > 0 && index < this.points.size() - 1) {
-			index += j;
-			if (Math.abs(p.getX() - this.points.get(index).getX()) > p.distance(closestPoint)) {
-				return closestPoint;
-			}
-			if (p.distance(this.vertices.get(index)) < p.distance(closestPoint)) {
-				closestPoint = this.points.get(index);
-			}
-		}
-		return closestPoint;
-	}
-
-	@Deprecated
-	private LocatedPoint halfClosestPoint(LocatedPoint p, int index, int j) {
-		/**
-		 * ne prend en compte que les points du même polygone
-		 */
-		LocatedPoint closestPoint = null;
-		index -= j;
-		while (index > 0 && index < this.points.size() - 1) {
-			index += j;
-			if (p.getPolygon().equals(this.points.get(index).getPolygon())) {
-				if (closestPoint == null) {
-					closestPoint = this.points.get(index);
-				} else {
-					if (Math.abs(p.getX() - this.points.get(index).getX()) > p.distance(closestPoint)) {
-						return closestPoint;
-					}
-					if (p.distance(this.vertices.get(index)) < p.distance(closestPoint)) {
-						closestPoint = this.points.get(index);
-					}
-				}
-			}
-		}
-		return closestPoint;
-	}
-
-	@Deprecated
-	private LocatedPoint closestPoint(Point p) {
-		// 1ere étape : le placer en fonction de l'abscisse (x)
-		
-		int d = 0;
-		int e = this.points.size();
-		while (e - d > 1) {
-			if (p.compareTo(this.points.get((d + e) / 2)) > 0) {
-				d = (d + e) / 2;
-			} else {
-				e = (d + e) / 2;
-			}
-		}
-		
-		// 2e étape : recherche du sommet le plus proche à gauche puis à doite
-		LocatedPoint leftClosestPoint = this.halfClosestPoint(p, d, -1);
-		LocatedPoint rightClosestPoint = this.halfClosestPoint(p, e, 1);
-		
-		if (p.distance(leftClosestPoint) < p.distance(rightClosestPoint)) {
-			return leftClosestPoint;
-		} else {
-			return rightClosestPoint;
-		}
-		
-	}
-
-	@Deprecated
-	private LocatedPoint closestPoint(LocatedPoint p) {
-		// 1ere étape : le placer en fonction de l'abscisse (x)
-		
-		int d = 0;
-		int e = this.points.size();
-		while (e - d > 1) {
-			if (p.compareTo(this.points.get((d + e) / 2)) > 0) {
-				d = (d + e) / 2;
-			} else {
-				e = (d + e) / 2;
-			}
-		}
-		
-		// 2e étape : recherche du sommet le plus proche à gauche puis à doite
-		LocatedPoint leftClosestPoint = this.halfClosestPoint(p, d, -1);
-		LocatedPoint rightClosestPoint = this.halfClosestPoint(p, e, 1);
-		
-		if (p.distance(leftClosestPoint) < p.distance(rightClosestPoint)) {
-			return leftClosestPoint;
-		} else {
-			return rightClosestPoint;
-		}
-		
-	}
-
-	@Deprecated
 	private LocatedPoint locatePoint(Point p) {
-		LocatedPoint origin = this.closestPoint(p);
+		// algo de marche aléatoire
+		
+		// on cherche un point connu "pas trop loin"
+		double dist = Double.POSITIVE_INFINITY;
+		LocatedPoint origin = null;
+		Random generator = new Random();
+		for (int i = 0; i < Math.sqrt(this.vertices.size()); i++) {
+			LocatedPoint newRandom = this.randomLocatedPoint(generator);
+			if (newRandom.distance(p) < dist) {
+				dist = newRandom.distance(p);
+				origin = newRandom;
+			}
+		}
+		
+		// marche vers le point recherché
 		HalfEdge startingEdge = origin.getPolygon().getEdge();
 		HalfEdge nextEdge = startingEdge;
 		do {
@@ -245,6 +148,7 @@ final class ProcessedMap extends PhysicalMap implements PathFinder {
 				nextEdge = nextEdge.getNext();
 			}
 		} while (nextEdge != startingEdge);
+		
 		return p.locate(startingEdge.getPolygon());
 	}
 	
@@ -293,8 +197,8 @@ final class ProcessedMap extends PhysicalMap implements PathFinder {
 	}
 
 	@Override
-	public Point[] shortestWay(LocatedPoint a, LocatedPoint b) {
-		return this.shortestWay(a, b, this.RESEARCH_AREA).getPath();
+	public Point[] shortestWay(Point a, Point b) {
+		return this.shortestWay(this.locatePoint(a), this.locatePoint(b), this.RESEARCH_AREA).getPath();
 	}
 	
 }

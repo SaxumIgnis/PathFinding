@@ -20,27 +20,15 @@ class StepEnd {
 class Step {
 	
 	private final double speed;
-	private final double startTime;
 	private final Point origin;
 	private final Point end;
 	
 	Step(double speed, Point a, Point b) throws BlockedPathException {
 		if (speed <= 0) throw new BlockedPathException("Null speed");
 		this.speed = speed;
-		this.startTime = 0;
 		this.origin = a;
 		this.end = b;
-	}
-	
-	Step(double speed, double startTime, Point a, Point b) throws BlockedPathException {
-		if (speed <= 0) throw new BlockedPathException("Null speed");
-		this.speed = speed;
-		this.startTime = startTime;
-		this.origin = a;
-		this.end = b;
-	}
-	
-	
+	}	
 	
 	Vector vector() {
 		return this.end.minus(this.origin);
@@ -59,11 +47,7 @@ class Step {
 	}
 	
 	double length() {
-		return this.vector().length() / this.speed + this.getStartTime();
-	}
-	
-	public double getStartTime() {
-		return startTime;
+		return this.vector().length() / this.speed;
 	}
 
 	@Deprecated
@@ -78,7 +62,6 @@ class Step {
 						// l'objectif se trouve en dehors du polygone
 						new Step(
 								toTestEdge.getPolygon().coeffSpeed(aim.minus(this.end)), 
-								intersectedEdge.getCross(), 
 								this.end, 
 								intersection
 								),
@@ -91,8 +74,7 @@ class Step {
 			// l'objectif est à l'intérieur du polygone
 			return new StepEnd(
 					new Step(
-							toTestEdge.getPolygon().coeffSpeed(aim.minus(this.end)), 
-							intersectedEdge.getCross(), 
+							toTestEdge.getPolygon().coeffSpeed(aim.minus(this.end)),
 							this.end, 
 							aim
 							),
@@ -115,8 +97,7 @@ class Step {
 				if (intersection != null) return new StepEnd(
 						// l'objectif se trouve en dehors du polygone
 						new Step(
-								toTestEdge.getPolygon().coeffSpeed(aim.minus(this.end)), 
-								intersectedEdge.getCross(), 
+								toTestEdge.getPolygon().coeffSpeed(aim.minus(this.end)),
 								this.end, 
 								intersection
 								),
@@ -130,8 +111,7 @@ class Step {
 			if (aim.getPolygon().equals(toTestEdge.getPolygon())) {
 				return new StepEnd(
 						new Step(
-								toTestEdge.getPolygon().coeffSpeed(aim.minus(this.end)), 
-								intersectedEdge.getCross(), 
+								toTestEdge.getPolygon().coeffSpeed(aim.minus(this.end)),
 								this.end, 
 								aim
 								),
@@ -168,8 +148,7 @@ class Step {
 				if (intersection != null) return new StepEnd(
 						// l'objectif se trouve en dehors du polygone
 						new Step(
-								toTestEdge.getPolygon().coeffSpeed(aim.minus(this.end)), 
-								intersectedEdge.getCross(), 
+								toTestEdge.getPolygon().coeffSpeed(aim.minus(this.end)),
 								this.end, 
 								intersection
 								),
