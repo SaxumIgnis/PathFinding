@@ -16,6 +16,9 @@ public class BinaryEdge implements Comparable<BinaryEdge> {
 		return this.getEnd().distance(this.getOrigin());
 	}
 
+	public double lengthPlan() {
+		return this.getEnd().distancePlan(this.getOrigin());
+	}
 
 	public Vertex getOrigin() {
 		return this.origin;
@@ -37,6 +40,11 @@ public class BinaryEdge implements Comparable<BinaryEdge> {
 		} else {
 			return false;
 		}			
+	}
+	
+	@Override
+	public int hashCode() {
+		return origin.tag * end.tag;
 	}
 	
 	public Vector getVector() {
@@ -84,5 +92,10 @@ public class BinaryEdge implements Comparable<BinaryEdge> {
 
 	public void setCross(boolean crossable) {
 		this.crossable = crossable;
+	}
+	
+	@Override
+	public String toString() {
+		return "arete " + this.getOrigin().tag + " -> " + this.getEnd().tag;
 	}
 }

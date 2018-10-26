@@ -11,7 +11,7 @@ import geometry.LocatedPoint;
 import geometry.Point;
 import geometry.Vertex;
 
-final class ProcessedMap extends PhysicalMap implements PathFinder {
+public final class ProcessedMap extends PhysicalMap implements PathFinder {
 
 	enum ProcessAlgo {FLOYD_WARSHALL, DIJKTRA};
 	
@@ -20,7 +20,7 @@ final class ProcessedMap extends PhysicalMap implements PathFinder {
 	
 	private Path[][] paths;
 	
-	public ProcessedMap(Point[] points, Point[][] edges) {
+	public ProcessedMap(Point[] points, int[][] edges) {
 		
 		super(points, edges);
 		

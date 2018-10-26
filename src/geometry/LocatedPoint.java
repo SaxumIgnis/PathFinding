@@ -3,7 +3,7 @@ package geometry;
 public class LocatedPoint extends Point {
 
 	LocatedPoint(double x, double y, double z) {
-		super(x, y, z);
+		super(x, y, z, -1);
 	}
 
 	protected Polygon polygon;

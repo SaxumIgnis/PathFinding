@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Arrays;
 
 import geometry.BinaryEdge;
+import geometry.HalfEdge;
 import geometry.Point;
 import geometry.Vertex;
 
@@ -21,7 +22,7 @@ public class PhysicalMap {
 
 		@Override
 		public int compare(BinaryEdge arg0, BinaryEdge arg1) {
-			return (int) Math.signum(arg0.length() - arg0.length());
+			return (int) Math.signum(arg0.lengthPlan() - arg1.lengthPlan());
 		}
 		
 	}
@@ -29,57 +30,87 @@ public class PhysicalMap {
 	private static boolean intersects(BinaryEdge edge, HashSet<BinaryEdge> chosenEdges) {
 		// retourne true si edge croise une des arêtes de chosenEdges
 		for (BinaryEdge chosenEdge : chosenEdges) {
-			if (chosenEdge.intersection(edge) != null) {
+			if (!edge.getOrigin().equals(chosenEdge.getOrigin()) &&
+					!edge.getOrigin().equals(chosenEdge.getEnd()) &&
+					!edge.getEnd().equals(chosenEdge.getOrigin()) &&
+					!edge.getEnd().equals(chosenEdge.getEnd()) &&
+					chosenEdge.intersection(edge) != null) {
 				return true;
 			}
 		}
 		return false;
 	}
 	
-	PhysicalMap(Point[] points, Point[][] edges) {
+	public PhysicalMap(Point[] points, int[][] edges) {
 		
 		HashSet<BinaryEdge> unAddedEdges = new HashSet<BinaryEdge>();
 		HashSet<BinaryEdge> chosenEdges = new HashSet<BinaryEdge>();
-		HashSet<Vertex> tempVertices = new HashSet<Vertex>();
+		this.vertices = new ArrayList<Vertex>(points.length);
 
-		for (Point point : points) {
-			tempVertices.add((Vertex) point);
+		for (int i = 0; i < points.length; i++) {
+			this.vertices.add(points[i].toVertex());
 		}
-		
+
+		//System.out.println("nombre de sommets : " + this.vertices.size());
 		// triangularisation de Delaunay avec des arêtes forcées
 		
-		for (Point[] edge : edges) {
-			BinaryEdge binaryEdge = new BinaryEdge((Vertex) edge[0], (Vertex) edge[1], false);
+		for (int[] edge : edges) {
+			for (int p : edge) System.out.print(" - " + points[p].tag);
+			System.out.println();
+			BinaryEdge binaryEdge = new BinaryEdge(points[edge[0]].toVertex(), points[edge[1]].toVertex(), false);
+			System.out.println("ajout " + binaryEdge + " comme obstacle");
 			chosenEdges.add(binaryEdge);
-			tempVertices.add(binaryEdge.getEnd());
-			tempVertices.add(binaryEdge.getOrigin());
+			binaryEdge.getOrigin().addEdge(binaryEdge.getEnd(), false);
 		}
 
-		this.vertices = new ArrayList<Vertex>(tempVertices);
 		
 		for (Vertex v : this.vertices) {
 			for (Vertex w : this.vertices) {
 				BinaryEdge edge = new BinaryEdge(v, w, true);
-				if (!chosenEdges.contains(edge)) {
+				if (!v.equals(w) && !chosenEdges.contains(edge)) {
 					unAddedEdges.add(edge);
 				}
 			}
 		}
 		
-		BinaryEdge[] edgesArray = (BinaryEdge[]) unAddedEdges.toArray();
-		Arrays.parallelSort(edgesArray, new EdgeComparator());
+		BinaryEdge[] edgesArray = unAddedEdges.toArray(new BinaryEdge[unAddedEdges.size()]);
+		
+
+		//for (BinaryEdge e : edgesArray)
+		//	System.out.println("arete "+e.getOrigin().tag+"-"+e.getEnd().tag+" : "+e.lengthPlan());
+		//System.out.println();
+		
+		Arrays.sort(edgesArray, new EdgeComparator());
+		
+		//for (BinaryEdge e : edgesArray)
+		//	System.out.println("arete "+e.getOrigin().tag+"-"+e.getEnd().tag+" : "+e.lengthPlan());
 		
 		for (BinaryEdge edge : edgesArray) {
 			if (!intersects(edge, chosenEdges)) {
+				System.out.println("ajout " + edge);
 				chosenEdges.add(edge);
 				edge.getOrigin().addEdge(edge.getEnd(), edge.getCross());
 			}
 		}
 		
 		// vérification
-		for (Vertex vertex : this.vertices) vertex.update();
+		//for (Vertex vertex : this.vertices) vertex.update();
 	}
 	
+	public Point[] getPoints() {
+		return this.vertices.toArray(new Point[this.vertices.size()]);
+	}
 	
+	public BinaryEdge[] getEdges() {
+		HashSet<BinaryEdge> edgeSet = new HashSet<BinaryEdge>();
+		for (Vertex vertex : this.vertices) {
+			HalfEdge e = vertex.getEdge();
+			do {
+				edgeSet.add((BinaryEdge) e);
+				e = e.getOpposite().getNext();
+			} while (!e.equals(vertex.getEdge()));
+		}
+		return edgeSet.toArray(new BinaryEdge[edgeSet.size()]);
+	}
 	
 }

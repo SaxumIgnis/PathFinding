@@ -7,11 +7,14 @@ public class Point extends Object implements Comparable<Point> {
 	protected final double x;
 	protected final double y;
 	protected final double z;
+	public final int tag;
+	// TODO : remove tag
 	
-	Point(double x, double y, double z) {
+	public Point(double x, double y, double z, int tag) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
+		this.tag = tag;
 	}
 	
 	public double getX() {
@@ -30,6 +33,10 @@ public class Point extends Object implements Comparable<Point> {
 		return(this.minus(p).length());
 	}
 	
+	public double distancePlan(Point p) {
+		return(Math.sqrt(Math.pow(this.x - p.x, 2) + Math.pow(this.y - p.y, 2)));
+	}
+	
 	public Vector minus(Point p) {
 		return new Vector(
 				this.x - p.x,
@@ -42,7 +49,8 @@ public class Point extends Object implements Comparable<Point> {
 		return new Point(
 				this.x + v.x,
 				this.y + v.y,
-				this.z + v.z
+				this.z + v.z,
+				-1
 				);
 	}
 	
@@ -89,6 +97,10 @@ public class Point extends Object implements Comparable<Point> {
 			return 0;
 		}
 		
+	}
+	
+	public Vertex toVertex() {
+		return new Vertex(x, y, z, tag);
 	}
 	
 }

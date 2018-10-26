@@ -35,13 +35,15 @@ public class HalfEdge extends BinaryEdge {
 	}
 	
 	public void setOpposite(HalfEdge o) {
+		System.out.println("arete "+origin.tag+" -> "+this.getEnd().tag+" new opposite : "+o.origin.tag+" -> "+o.getEnd().tag);
 		this.opposite = o;
 		o.opposite = this;
 	}
 	
 	public void setNext(HalfEdge n) {
+		System.out.println("arete "+origin.tag+" -> "+this.getEnd().tag+" new next : "+n.origin.tag+" -> "+n.getEnd().tag);
 		this.next = n;
-		this.polygon = n.polygon;
+		//this.polygon = n.getPolygon();
 	}
 	
 	@Override

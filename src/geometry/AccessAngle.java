@@ -11,7 +11,7 @@ class AccessAngle {
 	
 	
 	AccessAngle(Vector v1, Vector v2) {
-		this.center = new Point(0, 0, 0);
+		this.center = new Point(0, 0, 0, -1);
 		this.p1 = v1;
 		this.p2 = v2;
 		if (v1.equals(v2)) {
@@ -33,7 +33,7 @@ class AccessAngle {
 	}
 	
 	AccessAngle(boolean access) {
-		this.center = new Point(0, 0, 0);
+		this.center = new Point(0, 0, 0, -1);
 		if (access) {
 			this.access = Access.TOTAL;
 		} else {
@@ -80,8 +80,10 @@ class AccessAngle {
 	AccessAngle addVector(Vector v) {
 		if (this.access == Access.NULL) {
 			return this;
-		} else if (this.center.minus(this.p1) == null) {
+		} else if (this.access == Access.TOTAL) {
 			return new AccessAngle(v, v);
+		} else if (p1.equals(p2)) {
+			return new AccessAngle(this.center, this.p1, this.center.plus(v));
 		} else if (this.allows(v)) {
 			AccessAngle vv1 = new AccessAngle(v, this.center.minus(this.p1));
 			if (vv1.allows(this.center.minus(this.p2))) {

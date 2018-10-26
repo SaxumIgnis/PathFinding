@@ -7,8 +7,8 @@ public class Vertex extends Point {
 	private ArrayList<HalfEdge> edges;
 	private AccessAngle angle;
 	
-	Vertex(double x, double y, double z) {
-		super(x, y, z);
+	public Vertex(double x, double y, double z, int tag) {
+		super(x, y, z, tag);
 		this.edges = new ArrayList<HalfEdge>(2);
 		angle = new AccessAngle(true);
 	}
@@ -79,15 +79,19 @@ public class Vertex extends Point {
 			}
 		}
 		
-		return this.edges.get(0);
+		return this.edges.get(0).getOpposite();
 			
 	}
 	
 	private void addHalfEdge(HalfEdge e) {
 		if (this.edges.isEmpty()) {
+			System.out.println("sommet "+this.tag+" n'avait pas de voisins");
 			e.getOpposite().setNext(e);
 			e.setPolygon(new Polygon(e, 1));
 			e.getOpposite().setPolygon(e.getPolygon());
+			this.edges.add(e);
+
+			System.out.println("Polygon " + e.getPolygon().hashCode());
 		} else {
 			if (!this.edges.contains(e)) {
 				HalfEdge previous = this.directionPolygon(e.getEnd());
@@ -97,12 +101,16 @@ public class Vertex extends Point {
 				
 				// mise à jour des polygones
 				
+				if (previous.getPolygon() == null) System.out.println("arete " + previous.getOrigin().tag + " -> " + previous.getEnd().tag + " has no plygon");
 				e.updatePolygon(previous.getPolygon());
+				System.out.println("Polygon 1 " + previous.getPolygon().hashCode());
 				
 				if (e.getOpposite().getPolygon() == null) {
 					e.getOpposite().updatePolygon(new Polygon(e.getOpposite(), previous.getPolygon().coeffSpeed(new Vector(0, 0, 0))));
+
+					System.out.println("Polygon 2 " + e.getOpposite().getPolygon().hashCode());
 				}
-				
+
 				this.edges.add(e);
 				if (!e.getCross()) this.angle = this.angle.addVector(e.getVector());
 			}
@@ -110,16 +118,19 @@ public class Vertex extends Point {
 	}
 	
 	public void addEdge(Vertex end, boolean crossable) {
-		if (!this.isNeighbour(end)) {
+		if (!this.isNeighbour(end) && !this.equals(end)) {
 			HalfEdge e = new HalfEdge(this, end, crossable);
 			if (e.getOpposite() == null) {
 				e.setOpposite(new HalfEdge(e.getEnd(), e.getOrigin(), e.getCross()));
 			}
 			if (this.edges.isEmpty()) {
+				System.out.println("sommet "+this.tag+" n'avait pas de voisins");
 				e.getOpposite().setNext(e);
 			} else {
 				HalfEdge previous = this.directionPolygon(e.getEnd());
+				System.out.println("arete " + previous.getOrigin().tag + " -> " + previous.getEnd().tag + " is previous");
 				HalfEdge next = previous.getNext();
+				System.out.println("arete " + next.getOrigin().tag + " -> " + next.getEnd().tag + " is next");
 				previous.setNext(e);
 				e.getOpposite().setNext(next);
 			}
@@ -131,11 +142,14 @@ public class Vertex extends Point {
 	
 	public void update() {
 		for (HalfEdge edge : this.edges) {
+			System.out.print(edge);
 			if (!edge.equals(edge.getNext().getNext().getNext())) {
 				// le polygone n'est pas un triangle => on l'interdit
 				edge.setPolygon(null);
 				edge.setCross(false);
+				System.out.println(" --> "+edge.getNext()+" --> "+edge.getNext().getNext()+" --> "+edge.getNext().getNext().getNext());
 			}
+			System.out.println(" --> "+edge.getNext());
 			if (!edge.getPolygon().equals(edge.getNext().getPolygon())) {
 				edge.updatePolygon(edge.getPolygon());
 			}
