@@ -142,16 +142,19 @@ public class Vertex extends Point {
 	
 	public void update() {
 		for (HalfEdge edge : this.edges) {
-			System.out.print(edge);
+			System.out.print(edge + " ");
 			if (!edge.equals(edge.getNext().getNext().getNext())) {
 				// le polygone n'est pas un triangle => on l'interdit
 				edge.setPolygon(null);
 				edge.setCross(false);
 				System.out.println(" --> "+edge.getNext()+" --> "+edge.getNext().getNext()+" --> "+edge.getNext().getNext().getNext());
-			}
-			System.out.println(" --> "+edge.getNext());
-			if (!edge.getPolygon().equals(edge.getNext().getPolygon())) {
-				edge.updatePolygon(edge.getPolygon());
+			} else {
+				System.out.println(edge.getPolygon().hashCode());
+				System.out.println(edge.getNext().getPolygon().hashCode());
+
+				if (!edge.getPolygon().equals(edge.getNext().getPolygon())) {
+					edge.updatePolygon(edge.getPolygon());
+				}
 			}
 		}
 	}

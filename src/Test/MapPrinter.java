@@ -150,7 +150,7 @@ public static void main(String[] args) {
     buttonsPanel.add(clearButton);
     testFrame.getContentPane().add(buttonsPanel, BorderLayout.SOUTH);
     int[] i = new int[] {0};
-    comp.makeMap(10, 40);
+    comp.makeMap(10, 3);
     BinaryEdge[] edges = comp.map.getEdges();
     
     newLineButton.addActionListener(new ActionListener() {

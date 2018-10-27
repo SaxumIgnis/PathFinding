@@ -27,6 +27,7 @@ public class BinaryEdge implements Comparable<BinaryEdge> {
 	public Vertex getEnd() {
 		return end;
 	}
+	
 	@Override
 	public int compareTo(BinaryEdge edge) {
 		return (int) Math.signum(edge.length() - edge.length());
@@ -61,9 +62,9 @@ public class BinaryEdge implements Comparable<BinaryEdge> {
 		double x = ((b.x - a.x) * v.x * (a.y - c.y) + (b.x - a.x) * v.y * c.x - (b.y - a.y) * v.y * a.x) / det;
 		double y;
 		if (a.x == b.x) {
-			y = ((x - c.x) * v.y / v.x + c.y);
+			y = (x - c.x) * v.y / v.x + c.y;
 		} else {
-			y = ((x - a.x) * (b.y - a.y) / (b.x - a.x) + a.y);
+			y = (x - a.x) * (b.y - a.y) / (b.x - a.x) + a.y;
 		}
 		
 		double t = v.scalarProd(new Vector(x - c.x, y - c.y, 0)) / Math.pow(v.length(), 2);
@@ -79,7 +80,15 @@ public class BinaryEdge implements Comparable<BinaryEdge> {
 	}
 	
 	public Point intersection(BinaryEdge edge) {
-		return edge.intersection(this.getOrigin(), this.getEnd());
+		if (edge.getOrigin().equals(this.getOrigin()) ||
+				edge.getOrigin().equals(this.getEnd()) ||
+				edge.getEnd().equals(this.getOrigin()) ||
+				edge.getEnd().equals(this.getEnd()))
+			return null;
+		Point intersect = edge.intersection(this.getOrigin(), this.getEnd());
+		if (intersect != null) 
+			System.out.println(edge + " coupe " + this);
+		return intersect;
 	}
 	
 	public boolean getCross() {

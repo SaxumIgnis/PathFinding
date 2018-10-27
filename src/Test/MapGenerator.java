@@ -14,15 +14,16 @@ class MapGenerator {
 		int[][] edges = new int[numEdges][2];
 		for (int i = 0; i < numPoints; i++) {
 			points[i] = new Point(generator.nextDouble() * 100, generator.nextDouble() * 100, generator.nextDouble(), i);
-			System.out.println("Point " + i + " - x = " + points[i].getX() + " - y = " + points[i].getY() + " - z = " + points[i].getZ());
+			System.out.println(points[i]);
 		}
 		for (int i = 0; i < numEdges; i++) {
 			int x = generator.nextInt(numPoints);
 			int y = generator.nextInt(numPoints);
-			if (x != y) {
-				edges[i] = new int[] {x, y};
-				System.out.println("arete " + x +" -> " + y);
+			if (x == y) {
+				x = (x + 1) % numPoints;
 			}
+			edges[i] = new int[] {x, y};
+			System.out.println("arete " + x +" -> " + y);
 		}
 		return new PhysicalMap(points, edges);
 	}

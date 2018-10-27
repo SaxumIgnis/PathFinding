@@ -103,4 +103,8 @@ public class Point extends Object implements Comparable<Point> {
 		return new Vertex(x, y, z, tag);
 	}
 	
+	@Override
+	public String toString() {
+		return "Point " + tag + " (" + this.hashCode() + ") - x = " + x + " - y = " + y + " - z = " + z;
+	}
 }

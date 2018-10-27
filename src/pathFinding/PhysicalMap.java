@@ -30,11 +30,7 @@ public class PhysicalMap {
 	private static boolean intersects(BinaryEdge edge, HashSet<BinaryEdge> chosenEdges) {
 		// retourne true si edge croise une des arêtes de chosenEdges
 		for (BinaryEdge chosenEdge : chosenEdges) {
-			if (!edge.getOrigin().equals(chosenEdge.getOrigin()) &&
-					!edge.getOrigin().equals(chosenEdge.getEnd()) &&
-					!edge.getEnd().equals(chosenEdge.getOrigin()) &&
-					!edge.getEnd().equals(chosenEdge.getEnd()) &&
-					chosenEdge.intersection(edge) != null) {
+			if (chosenEdge.intersection(edge) != null) {
 				return true;
 			}
 		}
@@ -55,9 +51,7 @@ public class PhysicalMap {
 		// triangularisation de Delaunay avec des arêtes forcées
 		
 		for (int[] edge : edges) {
-			for (int p : edge) System.out.print(" - " + points[p].tag);
-			System.out.println();
-			BinaryEdge binaryEdge = new BinaryEdge(points[edge[0]].toVertex(), points[edge[1]].toVertex(), false);
+			BinaryEdge binaryEdge = new BinaryEdge(this.vertices.get(edge[0]), this.vertices.get(edge[1]), false);
 			System.out.println("ajout " + binaryEdge + " comme obstacle");
 			chosenEdges.add(binaryEdge);
 			binaryEdge.getOrigin().addEdge(binaryEdge.getEnd(), false);
@@ -94,7 +88,7 @@ public class PhysicalMap {
 		}
 		
 		// vérification
-		//for (Vertex vertex : this.vertices) vertex.update();
+		for (Vertex vertex : this.vertices) vertex.update();
 	}
 	
 	public Point[] getPoints() {
