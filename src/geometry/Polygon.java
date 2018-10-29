@@ -1,8 +1,44 @@
 package geometry;
 
-public class Polygon implements Comparable<Polygon>{
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
-	final HalfEdge edge;
+final class PolygonIterator implements Iterator<HalfEdge> {
+
+	private HalfEdge startEdge;
+	private HalfEdge edge;
+	private boolean notLast;
+	
+	PolygonIterator(Polygon polygon) {
+		this.startEdge = polygon.getEdge();
+		this.edge = this.startEdge;
+		this.notLast = true;
+	}
+	
+	@Override
+	public boolean hasNext() {
+		// TODO Auto-generated method stub
+		if (this.startEdge == null) return false;
+		return this.notLast;
+	}
+
+	@Override
+	public HalfEdge next() {
+		if (this.hasNext()) {
+			HalfEdge e = this.edge;
+			this.edge = this.edge.getNext();
+			if (this.edge.equals(this.startEdge)) this.notLast = false;
+			return e;
+		} else {
+			throw new NoSuchElementException();
+		} 
+	}
+
+}
+
+public final class Polygon implements Comparable<Polygon>, Iterable<HalfEdge> {
+
+	private final HalfEdge edge;
 	private final double scalarCoeff;
 	private final Vector vectorCoeff;
 	private final double MAXSPEED = 1.5;
@@ -20,6 +56,11 @@ public class Polygon implements Comparable<Polygon>{
 		// vecteur normal à la surface orienté vers le haut
 		this.vectorCoeff = normal.toPlan();
 		// projection du vecteur normal dans le plan horizontal => opposé du gradient d'altitude
+		
+		for (HalfEdge iEdge : this) {
+			iEdge.setPolygon(this);
+			System.out.println(iEdge + " is in polygon " + this.hashCode());
+		}
 	}
 	
 	public double coeffSpeed(Vector dir) {
@@ -57,11 +98,9 @@ public class Polygon implements Comparable<Polygon>{
 		if (arg instanceof Polygon) {
 			Polygon polygon = (Polygon) arg;
 
-			HalfEdge e = this.edge;
-			do {
-				if (e.equals(polygon.edge)) return true;
-				e = e.getNext();
-			} while (!e.equals(this.edge));
+			for (HalfEdge e : polygon) {
+				if (e.equals(this.edge)) return true;
+			}
 		} 
 		return false;
 	}
@@ -69,26 +108,22 @@ public class Polygon implements Comparable<Polygon>{
 	double area() {
 		// aire totale du ploygone (problème si le polygone n'est pas convexe) par somme des aires des triangles ayant p pour sommet
 		Point p = (Point) this.edge.getOrigin();
-		HalfEdge currentEdge = this.edge.getNext();
 		double res = 0;
-		do {
-			res += currentEdge.getOrigin().minus(p).vectorProduct(currentEdge.getVector()).length();
-			currentEdge = currentEdge.getNext();
-		} while (!currentEdge.getNext().equals(this.edge));
+		for (HalfEdge e : this) {
+			res += e.getOrigin().minus(p).vectorProduct(e.getVector()).length();
+		}
 		return res/2;
 	}
 	
 	double areaFlat() {
 		// aire algébrique du polygone projeté dans le plan horizontal (positive si sens direct, négative si sens indirect)
 		Point p = (Point) this.edge.getOrigin();
-		HalfEdge currentEdge = this.edge.getNext();
 		double res = 0;
-		do {
-			Point q = currentEdge.getOrigin();
-			Vector v = currentEdge.getVector();
+		for (HalfEdge e : this) {
+			Point q = e.getOrigin();
+			Vector v = e.getVector();
 			res += (q.x - p.x) * v.y - (q.y - p.y) * v.x;
-			currentEdge = currentEdge.getNext();
-		} while (!currentEdge.getNext().equals(this.edge));
+		}
 		return res/2;
 	}
 	
@@ -97,5 +132,19 @@ public class Polygon implements Comparable<Polygon>{
 		Point b = (Point) this.edge.getNext().getOrigin();
 		Point c = (Point) this.edge.getNext().getNext().getOrigin();
 		return a.plus(b.minus(a).mult(1/3)).plus(c.minus(a).mult(1/3)).locate(this);
+	}
+
+	@Override
+	public Iterator<HalfEdge> iterator() {
+		return new PolygonIterator(this);
+	}
+	
+	@Override
+	public String toString() {
+		String res = "Polygon";
+		for (HalfEdge e : this) {
+			res += "  " + e;
+		}
+		return res;
 	}
 }

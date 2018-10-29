@@ -141,7 +141,7 @@ public static void main(String[] args) {
     JFrame testFrame = new JFrame();
     testFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     final MapPrinter comp = new MapPrinter();
-    comp.setPreferredSize(new Dimension(320, 200));
+    comp.setPreferredSize(new Dimension(100, 100));
     testFrame.getContentPane().add(comp, BorderLayout.CENTER);
     JPanel buttonsPanel = new JPanel();
     JButton newLineButton = new JButton("New Line");
@@ -158,14 +158,14 @@ public static void main(String[] args) {
         @Override
         public void actionPerformed(ActionEvent e) {
         	if (i[0]<edges.length) {
-        		int x1 = (int) edges[i[0]].getOrigin().getX();
-        		int x2 = (int) edges[i[0]].getOrigin().getY();
-        		int y1 = (int) edges[i[0]].getEnd().getX();
-        		int y2 = (int) edges[i[0]].getEnd().getY();
+        		int x1 = (int) Math.floor(edges[i[0]].getOrigin().getX());
+        		int x2 = (int) Math.floor(edges[i[0]].getOrigin().getY());
+        		int y1 = (int) Math.floor(edges[i[0]].getEnd().getX());
+        		int y2 = (int) Math.floor(edges[i[0]].getEnd().getY());
         		Color color = Color.black;
         		if (edges[i[0]].getCross()) color = Color.blue;
         		comp.addLine(x1, y1, x2, y2, color);
-        		i[0]+=1;
+        		i[0] += 1;
         	}
         }
     });

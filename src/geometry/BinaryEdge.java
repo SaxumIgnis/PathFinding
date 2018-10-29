@@ -54,22 +54,23 @@ public class BinaryEdge implements Comparable<BinaryEdge> {
 	
 	public Point intersection(Point a, Point b) {
 		Point c = this.getOrigin();
-		Vector v = this.getVector();
-		double det = (b.x - a.x) * v.y - (v.x * (b.y - a.y));
+		Vector v1 = this.getVector();
+		Vector v2 = b.minus(a);
+		double det = (v1.x * v2.y) - (v1.y * v2.x);
 		
 		if (det == 0) return null; // les deux droites sont paralleles : pas d'intersection
 		
-		double x = ((b.x - a.x) * v.x * (a.y - c.y) + (b.x - a.x) * v.y * c.x - (b.y - a.y) * v.y * a.x) / det;
+		double x = (v2.x * (v1.x * c.y - v1.y * c.x) - v1.x * (v2.x * a.y - v2.y * a.x)) / det;
 		double y;
 		if (a.x == b.x) {
-			y = (x - c.x) * v.y / v.x + c.y;
+			y = (x - c.x) * v1.y / v1.x + c.y;
 		} else {
-			y = (x - a.x) * (b.y - a.y) / (b.x - a.x) + a.y;
+			y = (x - a.x) * v2.y / v2.x + a.y;
 		}
 		
-		double t = v.scalarProd(new Vector(x - c.x, y - c.y, 0)) / Math.pow(v.length(), 2);
+		double t = v1.scalarProd(new Vector(x - c.x, y - c.y, 0)) / Math.pow(v1.length(), 2);
 		Point i = c.plus(this.getVector().mult(t));
-		double t0 = b.minus(a).scalarProd(i.minus(a).toPlan()) / Math.pow(a.distance(b), 2);
+		double t0 = v2.scalarProd(i.minus(a).toPlan()) / Math.pow(v2.length(), 2);
 		
 		if (t0 < 0 || t0 > 1 || t < 0 || t > 1) {
 			return null;
@@ -89,6 +90,13 @@ public class BinaryEdge implements Comparable<BinaryEdge> {
 		if (intersect != null) 
 			System.out.println(edge + " coupe " + this);
 		return intersect;
+	}
+	
+	public boolean intersectsOne(Iterable<BinaryEdge> list) {
+		for (BinaryEdge edge : list) {
+			if (this.intersection(edge) != null) return true;
+		}
+		return false;
 	}
 	
 	public boolean getCross() {

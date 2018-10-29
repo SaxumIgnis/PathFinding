@@ -14,6 +14,7 @@ public class PhysicalMap {
 	
 	protected ArrayList<Vertex> vertices;
 	
+	@Deprecated
 	PhysicalMap() {
 		this.vertices = new ArrayList<Vertex>();
 	}
@@ -25,16 +26,6 @@ public class PhysicalMap {
 			return (int) Math.signum(arg0.lengthPlan() - arg1.lengthPlan());
 		}
 		
-	}
-	
-	private static boolean intersects(BinaryEdge edge, HashSet<BinaryEdge> chosenEdges) {
-		// retourne true si edge croise une des arêtes de chosenEdges
-		for (BinaryEdge chosenEdge : chosenEdges) {
-			if (chosenEdge.intersection(edge) != null) {
-				return true;
-			}
-		}
-		return false;
 	}
 	
 	public PhysicalMap(Point[] points, int[][] edges) {
@@ -55,6 +46,7 @@ public class PhysicalMap {
 			System.out.println("ajout " + binaryEdge + " comme obstacle");
 			chosenEdges.add(binaryEdge);
 			binaryEdge.getOrigin().addEdge(binaryEdge.getEnd(), false);
+			System.out.println();
 		}
 
 		
@@ -80,12 +72,25 @@ public class PhysicalMap {
 		//	System.out.println("arete "+e.getOrigin().tag+"-"+e.getEnd().tag+" : "+e.lengthPlan());
 		
 		for (BinaryEdge edge : edgesArray) {
-			if (!intersects(edge, chosenEdges)) {
+			if (!edge.intersectsOne(chosenEdges)) {
 				System.out.println("ajout " + edge);
 				chosenEdges.add(edge);
 				edge.getOrigin().addEdge(edge.getEnd(), edge.getCross());
+				System.out.println();
 			}
 		}
+		
+		System.out.println();
+		
+		for (Vertex v : this.vertices) {
+			System.out.println("Sommet " + v.tag);
+			for (HalfEdge e : v) {
+				System.out.println(e);
+			}
+			System.out.println();
+		}
+		
+		//for (BinaryEdge e : this.getEdges()) System.out.println(e);
 		
 		// vérification
 		for (Vertex vertex : this.vertices) vertex.update();
@@ -97,13 +102,10 @@ public class PhysicalMap {
 	
 	public BinaryEdge[] getEdges() {
 		HashSet<BinaryEdge> edgeSet = new HashSet<BinaryEdge>();
-		for (Vertex vertex : this.vertices) {
-			HalfEdge e = vertex.getEdge();
-			do {
+		for (Vertex vertex : this.vertices) 
+			for (HalfEdge e : vertex)
 				edgeSet.add((BinaryEdge) e);
-				e = e.getOpposite().getNext();
-			} while (!e.equals(vertex.getEdge()));
-		}
+		
 		return edgeSet.toArray(new BinaryEdge[edgeSet.size()]);
 	}
 	

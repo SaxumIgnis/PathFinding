@@ -13,7 +13,7 @@ class MapGenerator {
 		Point[] points = new Point[numPoints];
 		int[][] edges = new int[numEdges][2];
 		for (int i = 0; i < numPoints; i++) {
-			points[i] = new Point(generator.nextDouble() * 100, generator.nextDouble() * 100, generator.nextDouble(), i);
+			points[i] = new Point(generator.nextDouble() * 100, generator.nextDouble() * 100, 0, i);
 			System.out.println(points[i]);
 		}
 		for (int i = 0; i < numEdges; i++) {

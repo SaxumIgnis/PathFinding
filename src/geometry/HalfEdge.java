@@ -26,14 +26,6 @@ public class HalfEdge extends BinaryEdge {
 		this.polygon = p;
 	}
 	
-	public void updatePolygon(Polygon p) {
-		HalfEdge e = this;
-		do {
-			e.setPolygon(p);
-			e = e.getNext();
-		} while (!this.equals(e));
-	}
-	
 	public void setOpposite(HalfEdge o) {
 		System.out.println("arete "+origin.tag+" -> "+this.getEnd().tag+" new opposite : "+o.origin.tag+" -> "+o.getEnd().tag);
 		this.opposite = o;
@@ -71,8 +63,8 @@ public class HalfEdge extends BinaryEdge {
 	
 	@Override
 	public boolean equals(Object arg) {
-		if (arg instanceof BinaryEdge) {
-			BinaryEdge edge = (BinaryEdge) arg;
+		if (arg instanceof HalfEdge) {
+			HalfEdge edge = (HalfEdge) arg;
 			return (this.getEnd() == edge.getEnd() && this.getOrigin() == edge.getOrigin());
 		} else {
 			return false;
