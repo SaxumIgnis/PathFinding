@@ -3,8 +3,8 @@ package pathFinding;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Stack;
 import java.util.Arrays;
-
 import geometry.BinaryEdge;
 import geometry.HalfEdge;
 import geometry.Point;
@@ -28,6 +28,34 @@ public class PhysicalMap {
 		
 	}
 	
+	private void crossedEdges(BinaryEdge e1, HashSet<BinaryEdge> currentEdges, Stack<BinaryEdge> uncheckedEdges) {
+		for (BinaryEdge e2 : currentEdges) {
+			Point inter = e1.intersection(e2);
+			if (inter != null) {
+				Vertex v = inter.toVertex(this.vertices.size());
+				currentEdges.remove(e1);
+				currentEdges.remove(e2);
+				uncheckedEdges.remove(e2);
+
+				this.vertices.add(v);
+
+				currentEdges.add(new BinaryEdge(e1.getOrigin(), v, false));
+				currentEdges.add(new BinaryEdge(e2.getOrigin(), v, false));
+				currentEdges.add(new BinaryEdge(e1.getEnd(), v, false));
+				currentEdges.add(new BinaryEdge(e2.getEnd(), v, false));
+
+				uncheckedEdges.push(new BinaryEdge(e1.getOrigin(), v, false));
+				uncheckedEdges.push(new BinaryEdge(e2.getOrigin(), v, false));
+				uncheckedEdges.push(new BinaryEdge(e1.getEnd(), v, false));
+				uncheckedEdges.push(new BinaryEdge(e2.getEnd(), v, false));
+				
+				return;
+
+			}
+
+		}
+	}
+	
 	public PhysicalMap(Point[] points, int[][] edges) {
 		
 		HashSet<BinaryEdge> unAddedEdges = new HashSet<BinaryEdge>();
@@ -40,12 +68,28 @@ public class PhysicalMap {
 
 		//System.out.println("nombre de sommets : " + this.vertices.size());
 		// triangularisation de Delaunay avec des arêtes forcées
+
+		
+		// vérification que les aretes forcées ne se croisent pas 
+		// sinon ajout de l'intersection
+		
+		Stack<BinaryEdge> uncheckedEdges = new Stack<BinaryEdge>();
 		
 		for (int[] edge : edges) {
 			BinaryEdge binaryEdge = new BinaryEdge(this.vertices.get(edge[0]), this.vertices.get(edge[1]), false);
-			System.out.println("ajout " + binaryEdge + " comme obstacle");
+			uncheckedEdges.push(binaryEdge);
 			chosenEdges.add(binaryEdge);
-			binaryEdge.getOrigin().addEdge(binaryEdge.getEnd(), false);
+		}
+		
+
+		
+		while (!uncheckedEdges.isEmpty()) {
+			crossedEdges(uncheckedEdges.pop(), chosenEdges, uncheckedEdges);
+		}
+		
+		for (BinaryEdge edge : chosenEdges) {
+			System.out.println("ajout " + edge + " comme obstacle");
+			edge.getOrigin().addEdge(edge.getEnd(), false);
 			System.out.println();
 		}
 

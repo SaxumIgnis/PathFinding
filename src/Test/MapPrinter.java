@@ -141,31 +141,30 @@ public static void main(String[] args) {
     JFrame testFrame = new JFrame();
     testFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     final MapPrinter comp = new MapPrinter();
-    comp.setPreferredSize(new Dimension(100, 100));
+    comp.setPreferredSize(new Dimension(800, 800));
     testFrame.getContentPane().add(comp, BorderLayout.CENTER);
     JPanel buttonsPanel = new JPanel();
-    JButton newLineButton = new JButton("New Line");
+    JButton printButton = new JButton("Display Triangulation");
     JButton clearButton = new JButton("Clear");
-    buttonsPanel.add(newLineButton);
+    buttonsPanel.add(printButton);
     buttonsPanel.add(clearButton);
     testFrame.getContentPane().add(buttonsPanel, BorderLayout.SOUTH);
-    int[] i = new int[] {0};
-    comp.makeMap(10, 3);
+    comp.makeMap(100, 8);
     BinaryEdge[] edges = comp.map.getEdges();
     
-    newLineButton.addActionListener(new ActionListener() {
+    printButton.addActionListener(new ActionListener() {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-        	if (i[0]<edges.length) {
-        		int x1 = (int) Math.floor(edges[i[0]].getOrigin().getX());
-        		int x2 = (int) Math.floor(edges[i[0]].getOrigin().getY());
-        		int y1 = (int) Math.floor(edges[i[0]].getEnd().getX());
-        		int y2 = (int) Math.floor(edges[i[0]].getEnd().getY());
+        	for (int i = 0; i < edges.length; i++) {
+        		int x1 = (int) (8*Math.floor(edges[i].getOrigin().getX()));
+        		int y1 = (int) (8*Math.floor(edges[i].getOrigin().getY()));
+        		int x2 = (int) (8*Math.floor(edges[i].getEnd().getX()));
+        		int y2 = (int) (8*Math.floor(edges[i].getEnd().getY()));
         		Color color = Color.black;
-        		if (edges[i[0]].getCross()) color = Color.blue;
+        		if (edges[i].getCross()) color = Color.blue;
         		comp.addLine(x1, y1, x2, y2, color);
-        		i[0] += 1;
+        		System.out.println("Affiche " + edges[i]);
         	}
         }
     });

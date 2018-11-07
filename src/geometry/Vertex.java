@@ -174,7 +174,7 @@ public class Vertex extends Point implements Iterable<HalfEdge>{
 	
 	public void update() {
 		for (HalfEdge edge : this) {
-			if (!edge.equals(edge.getNext().getNext().getNext()) && false) { // TODO
+			if (!edge.equals(edge.getNext().getNext().getNext())) {
 				// le polygone n'est pas un triangle => on l'interdit
 				edge.setPolygon(null);
 				edge.setCross(false);

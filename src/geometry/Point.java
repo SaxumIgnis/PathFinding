@@ -100,7 +100,11 @@ public class Point extends Object implements Comparable<Point> {
 	}
 	
 	public Vertex toVertex() {
-		return new Vertex(x, y, z, tag);
+		return new Vertex(this.x, this.y, this.z, this.tag);
+	}
+	
+	public Vertex toVertex(int tag) {
+		return new Vertex(this.x, this.y, this.z, tag);
 	}
 	
 	@Override
