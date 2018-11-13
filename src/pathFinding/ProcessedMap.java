@@ -49,12 +49,17 @@ public final class ProcessedMap extends PhysicalMap implements PathFinder {
 		
 		int n = this.vertices.size();
 		
+		
 		// copie des chemins directs
 		ArrayList<HashMap<Integer, Path>> directPaths = new ArrayList<HashMap<Integer, Path>>(n);
-		for (int i = 0; i < n; i++)
+		for (int i = 0; i < n; i++) {
+			directPaths.add(i, new HashMap<Integer, Path>());
 			for (int j = 0; j < n; j++)
-				if (this.paths[i][j].length() < Double.POSITIVE_INFINITY)
+				if (this.paths[i][j].length() < Double.POSITIVE_INFINITY) {
 					directPaths.get(i).put(j, this.paths[i][j]);
+					System.out.println(this.vertices.get(i).tag + " a un chemin vers " + this.vertices.get(j).tag);
+				}
+		}
 		
 		
 		for (int i = 0; i < n; i++) {
@@ -63,12 +68,12 @@ public final class ProcessedMap extends PhysicalMap implements PathFinder {
 			for (int j = 0; j < n; j++) heap.add(j);
 			
 			while (!heap.isEmpty()) {
-				// recherche du sommet de heap le plus proche d'index
+				// recherche du sommet de heap le plus proche du sommet i
 				int k = -1;
 				double minDist = Double.POSITIVE_INFINITY;
 				for (int j : heap) {
 					if (paths[i][j].length() < minDist) {
-						k = i;
+						k = j;
 						minDist = paths[i][j].length();
 					}
 				}
@@ -89,7 +94,7 @@ public final class ProcessedMap extends PhysicalMap implements PathFinder {
 							}
 						} catch (BlockedPathException e) {
 							// TODO Auto-generated catch block
-							e.printStackTrace();
+							System.out.println("Not Consecutive Paths " + this.paths[i][k] + " and " + kj);
 						}
 					}
 				}
@@ -106,13 +111,17 @@ public final class ProcessedMap extends PhysicalMap implements PathFinder {
 
 		this.vertices.sort(new geometry.Point.ComparePoints());
 
+		for (int i = 0; i < n; i++) System.out.println("vertices[" + i + "] = " + this.vertices.get(i));
+		
 		for (int i = 0; i < n; i ++)
-			for (int j = 0; j < n; j++)
+			for (int j = 0; j < n; j++) {
 				try {
 					this.paths[i][j] = new Path(this.vertices.get(i), this.vertices.get(j));
-				} catch (BlockedPathException e) {
-					this.paths[i][j] = new Path(); // longueur infinie
+				} catch (PathException e) {
+					this.paths[i][j] = new Path(this.vertices.get(i), true); // longueur infinie
 				}
+			}
+		
 		
 		if (this.algo == ProcessAlgo.FLOYD_WARSHALL) this.processFloydWarshall();
 		if (this.algo == ProcessAlgo.DIJKTRA) this.processDijkstra();
@@ -163,7 +172,7 @@ public final class ProcessedMap extends PhysicalMap implements PathFinder {
 	private Path shortestWay(LocatedPoint start, LocatedPoint end, int researchArea) {
 		try {
 			return new Path(start, end);
-		} catch (BlockedPathException e) {
+		} catch (PathException e) {
 			HashSet<HalfEdge> startEdges = new HashSet<HalfEdge>();
 			HashSet<HalfEdge> endEdges = new HashSet<HalfEdge>();
 			

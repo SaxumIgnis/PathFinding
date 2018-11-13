@@ -51,7 +51,7 @@ public final class Polygon implements Comparable<Polygon>, Iterable<HalfEdge> {
 		if (normal.z < 0) {
 			normal = normal.mult(-1);
 		}
-		this.crossable = (normal.z > 0.5);
+		this.crossable = (normal.z > 0.5) && s > 0;
 		
 		// vecteur normal à la surface orienté vers le haut
 		this.vectorCoeff = normal.toPlan();
@@ -59,14 +59,16 @@ public final class Polygon implements Comparable<Polygon>, Iterable<HalfEdge> {
 		
 		for (HalfEdge iEdge : this) {
 			iEdge.setPolygon(this);
-			System.out.println(iEdge + " is in polygon " + this.hashCode());
+			//System.out.println(iEdge + " is in polygon " + this.hashCode());
 		}
 	}
 	
-	public double coeffSpeed(Vector dir) {
+	public double coeffSpeed(final Vector dir) {
 		if (this.crossable) {
-			return(Math.max(0, Math.min(this.scalarCoeff * (dir.norm().scalarProd(this.vectorCoeff) * 1.5 + 1), MAXSPEED)));			
-		} else return 0;
+			return(Math.max(0, Math.min(this.scalarCoeff * (dir.norm().scalarProd(this.vectorCoeff) * 1.5 + 1), MAXSPEED)));
+		} else {
+			return 0;
+		}
 		// valeur entre 0 et 1.5
 	}
 	

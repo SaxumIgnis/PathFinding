@@ -1,6 +1,6 @@
 package geometry;
 
-public class HalfEdge extends BinaryEdge {
+public final class HalfEdge extends BinaryEdge {
 
 	private HalfEdge opposite;
 	private HalfEdge next;
@@ -22,24 +22,24 @@ public class HalfEdge extends BinaryEdge {
 		return opposite;
 	}
 	
-	public void setPolygon(Polygon p) {
+	public void setPolygon(final Polygon p) {
 		this.polygon = p;
 	}
 	
-	public void setOpposite(HalfEdge o) {
-		System.out.println("arete "+origin.tag+" -> "+this.getEnd().tag+" new opposite : "+o.origin.tag+" -> "+o.getEnd().tag);
+	public void setOpposite(final HalfEdge o) {
+		//System.out.println("arete "+origin.tag+" -> "+this.getEnd().tag+" new opposite : "+o.origin.tag+" -> "+o.getEnd().tag);
 		this.opposite = o;
 		o.opposite = this;
 	}
 	
-	public void setNext(HalfEdge n) {
-		System.out.println("arete "+origin.tag+" -> "+this.getEnd().tag+" new next : "+n.origin.tag+" -> "+n.getEnd().tag);
+	public void setNext(final HalfEdge n) {
+		//System.out.println("arete "+origin.tag+" -> "+this.getEnd().tag+" new next : "+n.origin.tag+" -> "+n.getEnd().tag);
 		this.next = n;
 		//this.polygon = n.getPolygon();
 	}
 	
 	@Override
-	public void setCross(boolean crossable) {
+	public void setCross(final boolean crossable) {
 		this.crossable = crossable;
 		this.opposite.crossable = crossable;
 		// c'est plus simple quand c'est symétrique

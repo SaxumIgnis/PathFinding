@@ -87,8 +87,8 @@ public class BinaryEdge implements Comparable<BinaryEdge> {
 				edge.getEnd().equals(this.getEnd()))
 			return null;
 		Point intersect = edge.intersection(this.getOrigin(), this.getEnd());
-		if (intersect != null) 
-			System.out.println(edge + " coupe " + this);
+		//if (intersect != null) 
+		//	System.out.println(edge + " coupe " + this);
 		return intersect;
 	}
 	
@@ -99,12 +99,12 @@ public class BinaryEdge implements Comparable<BinaryEdge> {
 		return false;
 	}
 	
-	public boolean getCross() {
+	public boolean crossable() {
 		return this.crossable;
 	}
 	
 	public boolean isEdgeOf(Vertex v) {
-		return v.equals(this.origin) || v.equals(this.getEnd());
+		return v.equals(this.origin) || v.equals(this.end);
 	}
 
 	public void setCross(boolean crossable) {

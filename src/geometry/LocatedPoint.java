@@ -1,6 +1,6 @@
 package geometry;
 
-public class LocatedPoint extends Point {
+public final class LocatedPoint extends Point {
 
 	LocatedPoint(double x, double y, double z) {
 		super(x, y, z, -1);

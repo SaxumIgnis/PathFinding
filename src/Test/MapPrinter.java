@@ -1,95 +1,19 @@
 package Test;
-/*
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.geom.Line2D;
-import java.util.HashSet;
-
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-
-import geometry.BinaryEdge;
-import geometry.Vertex;
-import pathFinding.PhysicalMap;
-
-class MapPrinter extends JComponent {
-	
-	private static final long serialVersionUID = 1L;
-	private final PhysicalMap map;
-	
-	public MapPrinter(PhysicalMap map) {
-		this.map = map;
-	}
-	
-	@Override
-	protected void paintComponent(Graphics g) {
-	    Graphics2D g2 = (Graphics2D) g;
-	    super.paintComponent(g2);
-		 // draw Line2D.Double
-		    for (BinaryEdge e : this.map.getEdges()) {
-		    	if (e.getCross()) {
-		    		g2.setPaint(Color.blue);
-		    	} else {
-		    		g2.setPaint(Color.black);
-		    	}
-		    	g2.draw(new Line2D.Double(e.getOrigin().getX(), e.getOrigin().getY(), e.getEnd().getX(), e.getEnd().getY()));
-		    }
-	}
-
-	public void paint (Graphics g) {
-	    Graphics2D g2 = (Graphics2D) g;
-	 // draw Line2D.Double
-	    for (BinaryEdge e : this.map.getEdges()) {
-	    	if (e.getCross()) {
-	    		g2.setPaint(Color.blue);
-	    	} else {
-	    		g2.setPaint(Color.black);
-	    	}
-	    	g2.draw(new Line2D.Double(e.getOrigin().getX(), e.getOrigin().getY(), e.getEnd().getX(), e.getEnd().getY()));
-	    }
-	    
-	}
-	
-	private void update() {
-		this.repaint();
-	}
-	
-	public static void main(String[] args) {
-		MapGenerator generator = new MapGenerator();
-	    JFrame testFrame = new JFrame();
-	    testFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-	    final MapPrinter comp = new MapPrinter(generator.makePhysicalMap(10, 2));
-	    comp.setPreferredSize(new Dimension(320, 200));
-	    testFrame.getContentPane().add(comp, BorderLayout.CENTER);
-	    comp.update();
-	    System.out.println("fini");
-	}
-	
-}*/
-
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.LinkedList;
 
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
-
 import geometry.BinaryEdge;
-import pathFinding.PhysicalMap;
+import pathFinding.ProcessedMap;
 
 public class MapPrinter extends JComponent{
 
 	private static final long serialVersionUID = 1L;
-	private PhysicalMap map;
+	private ProcessedMap map;
 
 private static class Line{
     final int x1; 
@@ -125,7 +49,7 @@ public void clearLines() {
 
 public void makeMap(int numPoints, int numEdges) {
 	MapGenerator generator = new MapGenerator();
-	this.map = generator.makePhysicalMap(numPoints, numEdges);
+	this.map = generator.makeProcessedMap(numPoints, numEdges);
 }
 
 @Override
@@ -143,38 +67,20 @@ public static void main(String[] args) {
     final MapPrinter comp = new MapPrinter();
     comp.setPreferredSize(new Dimension(800, 800));
     testFrame.getContentPane().add(comp, BorderLayout.CENTER);
-    JPanel buttonsPanel = new JPanel();
-    JButton printButton = new JButton("Display Triangulation");
-    JButton clearButton = new JButton("Clear");
-    buttonsPanel.add(printButton);
-    buttonsPanel.add(clearButton);
-    testFrame.getContentPane().add(buttonsPanel, BorderLayout.SOUTH);
-    comp.makeMap(100, 8);
+    comp.makeMap(10, 5);
     BinaryEdge[] edges = comp.map.getEdges();
+    System.out.println("Computation terminated");
     
-    printButton.addActionListener(new ActionListener() {
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-        	for (int i = 0; i < edges.length; i++) {
-        		int x1 = (int) (8*Math.floor(edges[i].getOrigin().getX()));
-        		int y1 = (int) (8*Math.floor(edges[i].getOrigin().getY()));
-        		int x2 = (int) (8*Math.floor(edges[i].getEnd().getX()));
-        		int y2 = (int) (8*Math.floor(edges[i].getEnd().getY()));
-        		Color color = Color.black;
-        		if (edges[i].getCross()) color = Color.blue;
-        		comp.addLine(x1, y1, x2, y2, color);
-        		System.out.println("Affiche " + edges[i]);
-        	}
-        }
-    });
-    clearButton.addActionListener(new ActionListener() {
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            comp.clearLines();
-        }
-    });
+    for (BinaryEdge edge : edges) {
+    	int x1 = (int) (8*Math.floor(edge.getOrigin().getX()));
+    	int y1 = (int) (8*Math.floor(edge.getOrigin().getY()));
+    	int x2 = (int) (8*Math.floor(edge.getEnd().getX()));
+    	int y2 = (int) (8*Math.floor(edge.getEnd().getY()));
+    	Color color = Color.black;
+    	if (edge.crossable()) color = Color.blue;
+    	comp.addLine(x1, y1, x2, y2, color);
+    	//System.out.println("Affiche " + edge);
+    }
     testFrame.pack();
     testFrame.setVisible(true);
 }

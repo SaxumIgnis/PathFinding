@@ -88,9 +88,9 @@ public class PhysicalMap {
 		}
 		
 		for (BinaryEdge edge : chosenEdges) {
-			System.out.println("ajout " + edge + " comme obstacle");
+			//System.out.println("ajout " + edge + " comme obstacle");
 			edge.getOrigin().addEdge(edge.getEnd(), false);
-			System.out.println();
+			//System.out.println();
 		}
 
 		
@@ -117,22 +117,22 @@ public class PhysicalMap {
 		
 		for (BinaryEdge edge : edgesArray) {
 			if (!edge.intersectsOne(chosenEdges)) {
-				System.out.println("ajout " + edge);
+				//System.out.println("ajout " + edge);
 				chosenEdges.add(edge);
-				edge.getOrigin().addEdge(edge.getEnd(), edge.getCross());
-				System.out.println();
+				edge.getOrigin().addEdge(edge.getEnd(), edge.crossable());
+				//System.out.println();
 			}
 		}
 		
-		System.out.println();
+		//System.out.println();
 		
-		for (Vertex v : this.vertices) {
-			System.out.println("Sommet " + v.tag);
-			for (HalfEdge e : v) {
-				System.out.println(e);
-			}
-			System.out.println();
-		}
+		//for (Vertex v : this.vertices) {
+		//	System.out.println("Sommet " + v.tag);
+		//	for (HalfEdge e : v) {
+		//		System.out.println(e);
+		//	}
+		//	System.out.println();
+		//}
 		
 		//for (BinaryEdge e : this.getEdges()) System.out.println(e);
 		

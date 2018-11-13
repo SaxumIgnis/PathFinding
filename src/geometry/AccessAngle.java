@@ -1,6 +1,6 @@
 package geometry;
 
-class AccessAngle {
+final class AccessAngle {
 
 	enum Access {NULL, PARTIAL, TOTAL};
 	
@@ -69,10 +69,12 @@ class AccessAngle {
 		}
 	}
 	
+	@Deprecated
 	private boolean contains(Vector v) {
 		return Math.abs(v.angle2D(this.center.minus(this.p1)) - v.angle2D(this.center.minus(this.p2))) < Math.PI;
 	}
 	
+	@Deprecated
 	boolean contains(Point p) {
 		return this.contains(p.minus(this.center)) && !this.allows(p);
 	}
@@ -101,6 +103,7 @@ class AccessAngle {
 		
 	}
 	
+	@Deprecated
 	AccessAngle addPoint(Point p) {
 		if (this.access == Access.NULL) {
 			return this;
@@ -137,10 +140,14 @@ class AccessAngle {
 			tp = this.p1;
 		}
 		
-		double a = this.center.minus(angle.center).angle2D(ap.minus(angle.center));
-		double t = angle.center.minus(this.center).angle2D(tp.minus(this.center));
+		try {
+			double a = this.center.minus(angle.center).angle2D(ap.minus(angle.center));
+			double t = angle.center.minus(this.center).angle2D(tp.minus(this.center));
+			return Math.signum(a) == Math.signum(t);
+		} catch (NullPointerException e) {
+			return true;
+		}
 		
-		return Math.signum(a) == Math.signum(t);
 	}
 	
 }

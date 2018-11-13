@@ -1,6 +1,6 @@
 package geometry;
 
-public class Vector extends Point {
+public final class Vector extends Point {
 
 	public Vector(double x, double y, double z) {
 		super(x, y, z, -1);
@@ -34,13 +34,11 @@ public class Vector extends Point {
 				);
 	}
 	
-	@Deprecated
 	public double angle2D() {
 		// retourne l'angle (en rad) par rapport à la verticale dans le sens direct entre -pi et pi
 		return -Math.atan2(this.x, this.y);
 	}
 	
-	@Deprecated
 	public double angle2D(Vector v) {
 		// AB.angle2D(AC) retourne l'angle BAC en rad entre -pi et pi
 		double res = v.angle2D() - this.angle2D();

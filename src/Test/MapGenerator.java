@@ -6,16 +6,22 @@ import geometry.Point;
 import pathFinding.PhysicalMap;
 import pathFinding.ProcessedMap;
 
-class MapGenerator {
+final class MapGenerator {
 
-	PhysicalMap makePhysicalMap(int numPoints, int numEdges) {
-		Random generator = new Random();
+	private static final Random generator = new Random();
+	
+	
+	private static Point[] randomPoints(int numPoints) {
 		Point[] points = new Point[numPoints];
-		int[][] edges = new int[numEdges][2];
+
 		for (int i = 0; i < numPoints; i++) {
-			points[i] = new Point(generator.nextDouble() * 100, generator.nextDouble() * 100, generator.nextDouble(), i);
-			System.out.println(points[i]);
+			points[i] = new Point(generator.nextDouble() * 100, generator.nextDouble() * 100, /*generator.nextDouble()*/ 0, i);
 		}
+		return points;
+	}
+	
+	private static int[][] randomEdges(int numPoints, int numEdges) {
+		int[][] edges = new int[numEdges][2];
 		for (int i = 0; i < numEdges; i++) {
 			int x = generator.nextInt(numPoints);
 			int y = generator.nextInt(numPoints);
@@ -23,25 +29,15 @@ class MapGenerator {
 				x = (x + 1) % numPoints;
 			}
 			edges[i] = new int[] {x, y};
-			System.out.println("arete " + x +" -> " + y);
 		}
-		return new PhysicalMap(points, edges);
+		return edges;
+	}
+	
+	PhysicalMap makePhysicalMap(int numPoints, int numEdges) {
+		return new PhysicalMap(randomPoints(numPoints), randomEdges(numPoints, numEdges));
 	}
 	
 	ProcessedMap makeProcessedMap(int numPoints, int numEdges) {
-		Random generator = new Random();
-		Point[] points = new Point[numPoints];
-		int[][] edges = new int[numEdges][2];
-		for (int i = 0; i < numPoints; i++) {
-			points[i] = new Point(generator.nextDouble() * 100, generator.nextDouble() * 100, generator.nextDouble(), i);
-		}
-		for (int i = 0; i < numEdges; i++) {
-			int x = generator.nextInt(numPoints);
-			int y = generator.nextInt(numPoints);
-			if (x != y)
-				edges[i] = new int[] {x, y};
-		}
-		return new ProcessedMap(points, edges);
+		return new ProcessedMap(randomPoints(numPoints), randomEdges(numPoints, numEdges));
 	}
-	
 }
