@@ -15,7 +15,7 @@ final class MapGenerator {
 		Point[] points = new Point[numPoints];
 
 		for (int i = 0; i < numPoints; i++) {
-			points[i] = new Point(generator.nextDouble() * 100, generator.nextDouble() * 100, /*generator.nextDouble()*/ 0, i);
+			points[i] = new Point(generator.nextDouble() * 100, generator.nextDouble() * 100, generator.nextDouble(), i);
 		}
 		return points;
 	}

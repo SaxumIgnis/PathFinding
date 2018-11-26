@@ -71,9 +71,22 @@ public class Point extends Object implements Comparable<Point> {
 		return 0;
 	}
 	
-	public LocatedPoint locate(Polygon polygon) {
+	public LocatedPoint locate(LocatedPoint origin) {
+
+		// marche vers le point recherché
+		HalfEdge startingEdge = origin.getPolygon().getEdge();
+		HalfEdge nextEdge = startingEdge;
+		do {
+			if (nextEdge.intersection(origin, this) != null) {
+				startingEdge = nextEdge.getOpposite();
+				nextEdge = startingEdge.getNext();
+			} else {
+				nextEdge = nextEdge.getNext();
+			}
+		} while (nextEdge != startingEdge);
+
 		LocatedPoint p = (LocatedPoint) this;
-		p.polygon = polygon;
+		p.polygon = nextEdge.getPolygon();
 		return p;
 	}
 	

@@ -7,6 +7,7 @@ public final class LocatedPoint extends Point {
 	}
 
 	protected Polygon polygon;
+
 	
 	public Polygon getPolygon() {
 		return this.polygon;

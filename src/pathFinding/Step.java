@@ -50,80 +50,44 @@ final class Step {
 		return (this.speed > 0) ? this.vector().length() / this.speed : Double.POSITIVE_INFINITY;
 	}
 
-	@Deprecated
 	StepEnd nextStep(final Point aim, final HalfEdge intersectedEdge) throws BlockedPathException {
 		HalfEdge toTestEdge = intersectedEdge.getOpposite().getNext();
 		Point intersection = null;
-		try {
-			while (!toTestEdge.equals(intersectedEdge.getOpposite())) {
-				intersection = toTestEdge.intersection(this.end, aim);
+		while (!toTestEdge.equals(intersectedEdge.getOpposite())) {
+			intersection = toTestEdge.intersection(this.end, aim);
 
-				if (intersection != null) return new StepEnd(
-						// l'objectif se trouve en dehors du polygone
-						new Step(
-								toTestEdge.getPolygon().coeffSpeed(aim.minus(this.end)), 
-								this.end, 
-								intersection
-								),
-						toTestEdge
-						);
-
-				toTestEdge = toTestEdge.getNext();
-			}
-
-			// l'objectif est à l'intérieur du polygone
-			return new StepEnd(
+			if (intersection != null) return new StepEnd(
+					// l'objectif se trouve en dehors du polygone
 					new Step(
-							toTestEdge.getPolygon().coeffSpeed(aim.minus(this.end)),
+							toTestEdge.getPolygon().coeffSpeed(aim.minus(this.end)), 
 							this.end, 
-							aim
+							intersection
 							),
-					null
+					toTestEdge
 					);
-		} catch (java.lang.NullPointerException e) {
-			// normalement c'est inutile car on ne doit pas pouvoir sortir de la map physique mais on ne sait jamais
-			throw new BlockedPathException("Going out of the map");
+
+			toTestEdge = toTestEdge.getNext();
 		}
+
+		// l'objectif est à l'intérieur du polygone
+		return new StepEnd(
+				new Step(
+						toTestEdge.getPolygon().coeffSpeed(aim.minus(this.end)),
+						this.end, 
+						aim
+						),
+				null
+				);
 
 	}
 
-	StepEnd nextStep(final LocatedPoint aim, final HalfEdge intersectedEdge) throws BlockedPathException {
-		HalfEdge toTestEdge = intersectedEdge.getOpposite().getNext();
-		Point intersection = null;
-		try {
-			while (!toTestEdge.equals(intersectedEdge.getOpposite())) {
-				intersection = toTestEdge.intersection(this.end, aim);
+	StepEnd nextStep(final LocatedPoint aim, final HalfEdge intersectedEdge) throws PathException {
+		StepEnd res = nextStep((Point) aim, intersectedEdge);
 
-				if (intersection != null) return new StepEnd(
-						// l'objectif se trouve en dehors du polygone
-						new Step(
-								toTestEdge.getPolygon().coeffSpeed(aim.minus(this.end)),
-								this.end, 
-								intersection
-								),
-						toTestEdge
-						);
-
-				toTestEdge = toTestEdge.getNext();
-			}
-
-			// l'objectif est à l'intérieur du polygone
-			if (aim.getPolygon().equals(toTestEdge.getPolygon())) {
-				return new StepEnd(
-						new Step(
-								toTestEdge.getPolygon().coeffSpeed(aim.minus(this.end)),
-								this.end, 
-								aim
-								),
-						null
-						);
-			} else {
-				throw new BlockedPathException("Arrived in wrong polygon");
-			}
-
-		} catch (java.lang.NullPointerException e) {
-			// normalement c'est inutile car on ne doit pas pouvoir sortir de la map physique mais on ne sait jamais
-			throw new BlockedPathException("Going out of the map");
+		if (res.intersectedEdge == null && !aim.getPolygon().equals(intersectedEdge.getOpposite().getPolygon())) {
+			throw new PathException("Arrived in wrong polygon");
+		} else {
+			return res;
 		}
 
 	}
@@ -168,7 +132,6 @@ final class Step {
 
 	}
 
-	@Deprecated
 	static StepEnd firstStep(final Point origin, final Point aim, final Polygon area) throws BlockedPathException {
 		HalfEdge toTestEdge = area.getEdge();
 		Point intersection = null;
@@ -199,7 +162,6 @@ final class Step {
 				);
 	}	
 
-	@Deprecated
 	static StepEnd firstStep(final LocatedPoint origin, final Point aim) throws PathException {
 		return firstStep((Point) origin, aim, origin.getPolygon());
 	}
@@ -279,12 +241,10 @@ final class Step {
 		throw new PathException("Vertex inside polygon");
 	}
 
-	static StepEnd firstStep(final Vertex origin, final LocatedPoint aim) throws BlockedPathException {
-		HalfEdge firstPolygonEdge = origin.getEdge();
+	static StepEnd firstStep(final Vertex origin, final Point aim) throws BlockedPathException {
 		Point intersection = null;
-		do {
-			HalfEdge toTestEdge = firstPolygonEdge;
-			do {
+		for (HalfEdge edge : origin) {
+			for (HalfEdge toTestEdge : edge.getPolygon()) {
 				if (!toTestEdge.isEdgeOf(origin)) {
 
 					intersection = toTestEdge.intersection(origin, aim);
@@ -301,15 +261,13 @@ final class Step {
 
 					toTestEdge = toTestEdge.getNext();
 				}
-			} while (!toTestEdge.equals(firstPolygonEdge));
-
-			firstPolygonEdge = firstPolygonEdge.getOpposite().getNext();
-		} while (firstPolygonEdge.equals(origin.getEdge()));
+			}
+		}
 
 		// le polygone de l'objectif a origin comme sommet
 		return new StepEnd(
 				new Step(
-						aim.getPolygon().coeffSpeed(aim.minus(origin)),
+						aim.locate(origin.getEdge().getPolygon().center()).getPolygon().coeffSpeed(aim.minus(origin)),
 						origin,
 						aim
 						),

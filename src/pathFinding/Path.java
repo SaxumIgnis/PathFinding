@@ -18,27 +18,45 @@ class PathException extends Exception {
 	}
 
 	private static final long serialVersionUID = 1L;
-	
+
 }
 
 class BlockedPathException extends PathException {
+
+	public BlockedPathException() {
+		super();
+	}
 
 	public BlockedPathException(String string) {
 		super(string);
 	}
 
 	private static final long serialVersionUID = 1L;
-	
+
+}
+
+class UnAuthorizedAnglePathException extends BlockedPathException {
+
+	private static final long serialVersionUID = 1L;
+
+	public UnAuthorizedAnglePathException(String string) {
+		super(string);
+	}
+
+	public UnAuthorizedAnglePathException() {
+		super();
+	}
+
 }
 
 class NotConsecutivePathException extends PathException {
-	
+
 	private static final long serialVersionUID = 1L;
-	
+
 }
 
-final class Path implements Comparable<Path>{
-	
+final class Path implements Comparable<Path> {
+
 	/** 
 	 * classe pour un itinéraire entre deux points
 	 * 
@@ -51,100 +69,115 @@ final class Path implements Comparable<Path>{
 	 * 
 	 * AB.merge(BC) -> AC
 	 */
-	
+
 	private ArrayList<Step> steps;
 	private double length;
 	private final Point origin;
 	private Point arrival;
-	
+
 	Path() {
 		this.steps = null;
 		this.length = Double.POSITIVE_INFINITY;
 		this.origin = null;
 		this.arrival = null;
 	}
-	
-	Path(Point origin, boolean blocked) {
-		this.steps = new ArrayList<Step>();
-		this.length = blocked ? Double.POSITIVE_INFINITY : 0;
+
+	Path(Point origin, Point aim) {
 		this.origin = origin;
-		this.arrival = origin;
+		this.arrival = aim;
+		this.steps = new ArrayList<Step>();
+		this.length = 0;
+		
+		if (!origin.equals(aim)) try
+		{
+			this.arrival = (Point) origin;
+			if (origin instanceof Vertex)
+			{
+				if (aim instanceof Vertex)
+				{
+					this.newPath((Vertex) origin, (Vertex) aim);
+				}
+				else
+				{
+					this.newPath((Vertex) origin, aim);
+				}
+			}
+			else if (origin instanceof LocatedPoint)
+			{
+				if (aim instanceof Vertex)
+				{
+					this.newPath((LocatedPoint) origin, (Vertex) aim);
+				} else
+				{
+					this.newPath((LocatedPoint) origin, aim);
+				}
+			}
+			else throw new PathException();
+		}
+		catch (PathException e)
+		{
+			this.length = Double.POSITIVE_INFINITY;
+			this.arrival = aim;
+			this.steps.clear();
+		}
 	}
 
 	double length() {
 		return this.length;
 	}
-	
-	Path(LocatedPoint origin, LocatedPoint aim) throws PathException {
-		this.steps = new ArrayList<Step>();
-		this.length = 0;
-		this.origin = origin;
-		this.arrival = (Point) origin;
-		
+
+	private void newPath(LocatedPoint origin, Point aim) throws PathException {
+
 		StepEnd newStep = pathFinding.Step.firstStep(origin, aim);
 		this.add(newStep.innerStep);
 		while (this.arrival != aim) {
 			if (!newStep.intersectedEdge.crossable()) throw new BlockedPathException("Incrossable edge");
-			
+
 			newStep = newStep.innerStep.nextStep(aim, newStep.intersectedEdge);
 			this.add(newStep.innerStep);
 		}
-		
+
 		//if (aim.getPolygon() != newStep.intersectedEdge.getPolygon()) throw new BlockedPathException("Arrived in wrong polygon");
 	}
-	
-	Path(Vertex origin, Vertex aim) throws PathException {
-		this.origin = origin;
-		this.arrival = origin;
-		if (origin.equals(aim)) {
-			this.length = 0;
-			this.steps = new ArrayList<Step>(0);
-		}
-		else
-		{
-			// TODO : utiliser les AccessAngle
-			System.out.print ("création chemin " + origin.tag + " vers " + aim.tag + " : ");
-			if (origin.isNeighbour(aim)) {
-				double speed = origin.speedToNeighbour(aim);
-				this.steps = new ArrayList<Step>(1);
-				this.add(new Step(speed, origin, aim));
-				System.out.println("sommets voisins, longueur " + this.length);
-			}
-			else
-			{
-				this.steps = new ArrayList<Step>();
-				StepEnd newStep = pathFinding.Step.firstStep(origin, aim);
-				this.add(newStep.innerStep);
-				//System.out.println("Ajout chemin de " + newStep.innerStep.getOrigin() + " vers " + newStep.innerStep.getEnd() + "de longueur " + newStep.innerStep.length() + ", nouvelle longueur " + this.length);
-				
-				
-				while (!this.arrival.equals(aim))
-				{
 
-					//System.out.println("point intermédiaire : " + this.arrival);
-					if (!newStep.intersectedEdge.crossable())
-					{
-						System.out.println("chemin bloqué par " + newStep.intersectedEdge);
-						throw new BlockedPathException("Incrossable edge");
-					}
-					newStep = newStep.innerStep.nextStep(aim, newStep.intersectedEdge);
-					if (!this.add(newStep.innerStep))
-					{
-						System.out.println("Echec d'ajout du nouveau chemin : " + newStep.innerStep.getOrigin() + " != "+ this.arrival);
-						throw new BlockedPathException("Not Consectutive Paths");
-					}
+	private void newPath(Vertex origin, Vertex aim) throws PathException {
+		//	System.out.print ("création chemin " + origin.tag + " vers " + aim.tag + " : ");
+		if (origin.isNeighbour(aim))
+		{
+			double speed = origin.speedToNeighbour(aim);
+			this.add(new Step(speed, origin, aim));
+			//	System.out.println("sommets voisins, longueur " + this.length);
+		}
+		else 
+		{
+			if (! origin.allows(aim) || !aim.allows(origin)) throw new UnAuthorizedAnglePathException();
+			StepEnd newStep = pathFinding.Step.firstStep(origin, aim);
+			this.add(newStep.innerStep);
+			//System.out.println("Ajout chemin de " + newStep.innerStep.getOrigin() + " vers " + newStep.innerStep.getEnd() + "de longueur " + newStep.innerStep.length() + ", nouvelle longueur " + this.length);
+
+			while (!this.arrival.equals(aim))
+			{
+				//System.out.println("point intermédiaire : " + this.arrival);
+				if (!newStep.intersectedEdge.crossable())
+				{
+					//	System.out.println("chemin bloqué par " + newStep.intersectedEdge);
+					throw new BlockedPathException("Incrossable edge");
 				}
-				System.out.println((this.steps.size() - 1) + " sommets intermédiaires, longueur " + this.length);
+				newStep = newStep.innerStep.nextStep(aim, newStep.intersectedEdge);
+				if (!this.add(newStep.innerStep))
+				{
+					//	System.out.println("Echec d'ajout du nouveau chemin : " + newStep.innerStep.getOrigin() + " != "+ this.arrival);
+					throw new NotConsecutivePathException();
+				}
 			}
+			//System.out.println((this.steps.size() - 1) + " sommets intermédiaires, longueur " + this.length);
 		}
 	}
-	
-	Path(LocatedPoint origin, Vertex aim) throws BlockedPathException {
-		this.steps = new ArrayList<Step>();
-		this.length = 0;
-		this.origin = origin;
-		this.arrival = (Point) origin;
+
+	private void newPath(LocatedPoint origin, Vertex aim) throws BlockedPathException {
 		
+		if (!aim.allows(origin)) throw new UnAuthorizedAnglePathException();
+
 		StepEnd newStep = pathFinding.Step.firstStep(origin, aim);
 		this.add(newStep.innerStep);
 		while (this.arrival != aim) {
@@ -153,13 +186,11 @@ final class Path implements Comparable<Path>{
 			this.add(newStep.innerStep);
 		}
 	}
-	
-	Path(Vertex origin, LocatedPoint aim) throws BlockedPathException {
-		this.steps = new ArrayList<Step>();
-		this.length = 0;
-		this.origin = origin;
-		this.arrival = (Point) origin;
+
+	private void newPath(Vertex origin, Point aim) throws BlockedPathException {
 		
+		if (!origin.allows(aim)) throw new UnAuthorizedAnglePathException();
+
 		StepEnd newStep = pathFinding.Step.firstStep(origin, aim);
 		this.add(newStep.innerStep);
 		while (this.arrival != aim) {
@@ -168,7 +199,7 @@ final class Path implements Comparable<Path>{
 			this.add(newStep.innerStep);
 		}
 	}
-	
+
 	private boolean add(Step newStep) {
 		if (this.arrival.equals(newStep.getOrigin())) {
 			this.steps.add(newStep);
@@ -178,33 +209,34 @@ final class Path implements Comparable<Path>{
 		}
 		return false;
 	}
-	
-	void merge(Path pathToAdd) throws BlockedPathException {
-		if (!this.arrival.equals(pathToAdd.origin)) throw new BlockedPathException("Not consecutive paths");
+
+	void merge(Path pathToAdd) throws NotConsecutivePathException {
+		if (!this.arrival.equals(pathToAdd.origin)) throw new NotConsecutivePathException();
 
 		if (this.steps.addAll(pathToAdd.steps)) {
 			this.arrival = pathToAdd.arrival;
 			this.length += pathToAdd.length;
 		}
 	}
-	
-	Path add(Path pathToAdd) throws BlockedPathException {
-		if (!this.arrival.equals(pathToAdd.steps.get(0).getOrigin())) throw new BlockedPathException("Not consecutive paths");
-		
-		Path newPath = new Path(this.origin, false);
+
+	Path add(Path pathToAdd) throws NotConsecutivePathException {
+		if (!this.arrival.equals(pathToAdd.origin)) throw new NotConsecutivePathException();
+
+		Path newPath = new Path(this.origin, this.origin);
 		newPath.steps.addAll(this.steps);
 		newPath.steps.addAll(pathToAdd.steps);
-		
+
 		newPath.length = this.addLength(pathToAdd);
 		newPath.arrival = pathToAdd.arrival;
 		return newPath;
 	}
-	
-	double addLength(Path pathToAdd) throws BlockedPathException {
+
+	double addLength(Path pathToAdd) throws NotConsecutivePathException {
 		if (this.arrival.equals(pathToAdd.origin)) {
 			return this.length + pathToAdd.length;
+		} else {
+			throw new NotConsecutivePathException();
 		}
-		throw new BlockedPathException("Not consecutive paths");
 	}
 
 	Point[] getPath() {
@@ -222,13 +254,13 @@ final class Path implements Comparable<Path>{
 		if (path == null) return -1;
 		return (int) Math.signum(this.length - path.length);
 	}
-	
+
 	@Override
 	public String toString() {
 		if (this.length < Double.POSITIVE_INFINITY) {
 			return "chemin de " + this.origin.tag + " vers " + this.arrival.tag + " : longueur " + this.length;
 		} else {
-			return "chemin impossible";
+			return "chemin impossible de " + this.origin.tag + " vers " + this.arrival.tag;
 		}
 	}
 }

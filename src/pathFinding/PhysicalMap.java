@@ -137,7 +137,14 @@ public class PhysicalMap {
 		//for (BinaryEdge e : this.getEdges()) System.out.println(e);
 		
 		// vérification
-		for (Vertex vertex : this.vertices) vertex.update();
+		for (Vertex vertex : this.vertices) {
+			vertex.update();
+
+			// force les sommets ajoutés (intersections d'aretes) comme inaccessibles
+			if (vertex.tag >= points.length) vertex.forbid();
+		}
+		
+
 	}
 	
 	public Point[] getPoints() {
@@ -153,4 +160,7 @@ public class PhysicalMap {
 		return edgeSet.toArray(new BinaryEdge[edgeSet.size()]);
 	}
 	
+	public ArrayList<Vertex> getVertices() {
+		return this.vertices;
+	}
 }

@@ -133,7 +133,9 @@ public final class Polygon implements Comparable<Polygon>, Iterable<HalfEdge> {
 		Point a = (Point) this.edge.getOrigin();
 		Point b = (Point) this.edge.getNext().getOrigin();
 		Point c = (Point) this.edge.getNext().getNext().getOrigin();
-		return a.plus(b.minus(a).mult(1/3)).plus(c.minus(a).mult(1/3)).locate(this);
+		LocatedPoint center = (LocatedPoint) a.plus(b.minus(a).mult(1/3)).plus(c.minus(a).mult(1/3));
+		center.polygon = this;
+		return center;
 	}
 
 	@Override
